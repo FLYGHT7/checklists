@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Log in" %} - DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+{% with username_placeholder=LANGUAGE_CODE|yesno:"Enter your username or email,Ingresa tu usuario o email" password_placeholder=LANGUAGE_CODE|yesno:"Enter your password,Ingresa tu contraseña" %}
+<section class="login-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-7">
+        <div class="login-card">
+          <div class="login-header text-center">
+            <i class="bi bi-box-arrow-in-right login-icon"></i>
+            <h2>{% trans_tag "Log in" %}</h2>
+            <p class="text-muted">{% trans_tag "Access your DragTask account" %}</p>
+          </div>
+
+          {% if form.errors %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% trans_tag "Incorrect username or password. Please try again." %}
+          </div>
+          {% endif %}
+
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          <form action="{% url 'login' %}" method="POST" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Nombre de Usuario o Email -->
+            <div class="form-group mb-4">
+              <label for="{{ form.username.id_for_label }}" class="form-label">
+                <i class="bi bi-person me-2"></i>{% trans_tag "Username or Email" %}
+              </label>
+              {% render_field form.username class="form-control" placeholder=username_placeholder %}
+              {% if form.username.errors %}
+              <div class="error-message">
+                {% for error in form.username.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-group mb-3">
+              <label for="{{ form.password.id_for_label }}" class="form-label">
+                <i class="bi bi-lock me-2"></i>{% trans_tag "Password" %}
+              </label>
+              {% render_field form.password class="form-control" placeholder=password_placeholder %}
+              {% if form.password.errors %}
+              <div class="error-message">
+                {% for error in form.password.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Recordarme -->
+            <div class="form-check mb-4">
+              <input class="form-check-input" type="checkbox" id="remember-me" name="remember">
+              <label class="form-check-label" for="remember-me">
+                {% trans_tag "Remember me" %}
+              </label>
+              <a href="#" class="forgot-password float-end">{% trans_tag "Forgot your password?" %}</a>
+            </div>
+
+            <!-- Botón de Envío -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-unlock me-2"></i>{% trans_tag "Log in" %}
+              </button>
+            </div>
+          </form>
+
+          <div class="login-footer text-center mt-4">
+            <p>{% trans_tag "Don't have an account?" %} <a href="{% url 'register' %}" class="register-link">{% trans_tag "Register here" %}</a></p>
+            
+            <div class="social-login mt-4">
+              <p class="text-muted">{% trans_tag "Or log in with" %}</p>
+              <div class="social-buttons">
+                <button class="btn btn-outline-secondary social-btn">
+                  <i class="bi bi-google"></i>
+                </button>
+                <button class="btn btn-outline-secondary social-btn">
+                  <i class="bi bi-facebook"></i>
+                </button>
+                <button class="btn btn-outline-secondary social-btn">
+                  <i class="bi bi-github"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Create Form" %} - DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
+<style>
+  /* Estilos específicos para la página de creación de formulario */
+  .form-container {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    background-color: var(--neutral-50);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid var(--neutral-200);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  [data-bs-theme="dark"] .form-container {
+    background-color: var(--neutral-800);
+    border-color: var(--neutral-700);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-header {
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    z-index: 1;
+  }
+
+  .form-header h2 {
+    position: relative;
+    z-index: 2;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-body {
+    padding: 2rem;
+  }
+
+  /* Estilos para los campos del formulario */
+  .form-label {
+    font-weight: 600;
+    color: var(--neutral-700);
+    margin-bottom: 0.5rem;
+  }
+
+  [data-bs-theme="dark"] .form-label {
+    color: var(--neutral-300);
+  }
+
+  .form-control {
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    border-color: var(--neutral-300);
+    background-color: white;
+    transition: all var(--transition-fast);
+  }
+
+  [data-bs-theme="dark"] .form-control {
+    background-color: var(--neutral-700);
+    border-color: var(--neutral-600);
+    color: var(--neutral-200);
+  }
+
+  .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  }
+
+  .form-text {
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  [data-bs-theme="dark"] .form-text {
+    color: var(--neutral-400);
+  }
+
+  /* Estilos para el checkbox */
+  .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.25rem;
+    border-color: var(--neutral-300);
+    transition: all var(--transition-fast);
+  }
+
+  .form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .form-check-label {
+    padding-left: 0.5rem;
+    font-weight: 500;
+  }
+
+  /* Estilos para los botones */
+  .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-normal);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-action i {
+    font-size: 1.1rem;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+  }
+
+  /* Animaciones */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Estilos para el fondo, asegurando que sea igual al de todolist.css */
+  .todolist-section {
+    min-height: calc(100vh - 400px);
+    padding-bottom: 60px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(14, 165, 233, 0.03));
+  }
+
+  [data-bs-theme="dark"] .todolist-section {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(14, 165, 233, 0.05));
+    background-color: var(--neutral-900);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="todolist-section py-5">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <p class="text-muted">{% trans_tag "Complete the basic details to start creating your form" %}</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{% url 'gform_list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-10 col-lg-8">
+        {% if messages %}
+        <div class="messages mb-4">
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} animate-fade-in">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-container animate-fade-in">
+          <div class="form-header">
+            <h2>{% trans_tag "Create New Form" %}</h2>
+          </div>
+          <div class="form-body">
+            <form method="post" class="animate-fade-in">
+              {% csrf_token %}
+              
+              <div class="mb-4">
+                <label for="{{ form.title.id_for_label }}" class="form-label">{% trans_tag "Form Title" %}</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.title.errors }}
+                </div>
+                {% endif %}
+                <div class="form-text">{% trans_tag "The title will be visible to everyone who responds to the form." %}</div>
+              </div>
+              
+              <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="form-label">{% trans_tag "Description (optional)" %}</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.description.errors }}
+                </div>
+                {% endif %}
+                <div class="form-text">{% trans_tag "Provide more context about the purpose of the form." %}</div>
+              </div>
+              
+              <div class="mb-4 form-check">
+                {{ form.is_published }}
+                <label class="form-check-label" for="{{ form.is_published.id_for_label }}">
+                  {% trans_tag "Publish form immediately" %}
+                </label>
+                {% if form.is_published.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.is_published.errors }}
+                </div>
+                {% endif %}
+                <div class="form-text">{% trans_tag "If you don't publish it now, you can do it later from the edit page." %}</div>
+              </div>
+              
+              <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'gform_list' %}" class="btn btn-outline-secondary btn-action">
+                  <i class="bi bi-arrow-left"></i> {% trans_tag "Cancel" %}
+                </a>
+                <button type="submit" class="btn btn-primary btn-action">
+                  <i class="bi bi-save"></i> {% trans_tag "Create Form" %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Toast container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Asegurarse de que los campos tengan las clases correctas
+    document.getElementById('{{ form.title.id_for_label }}').classList.add('form-control');
+    document.getElementById('{{ form.description.id_for_label }}').classList.add('form-control');
+    document.getElementById('{{ form.is_published.id_for_label }}').classList.add('form-check-input');
+    
+    // Función para mostrar toasts
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type} show`;
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+      
+      toast.innerHTML = `
+        <div class="toast-body">
+          ${message}
+        </div>
+      `;
+      
+      const toastContainer = document.getElementById('toastContainer');
+      toastContainer.appendChild(toast);
+      
+      // Eliminar después de 3 segundos
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toastContainer.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+  });
+</script>
+{% endblock %}

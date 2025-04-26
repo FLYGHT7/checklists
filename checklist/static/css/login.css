@@ -1,0 +1,295 @@
+/* Estilos para la página de inicio de sesión */
+.login-section {
+    padding: 60px 0;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
+  }
+  
+  [data-bs-theme="dark"] .login-section {
+    background: linear-gradient(135deg, rgba(45, 55, 72, 0.3) 0%, rgba(26, 32, 44, 0.3) 100%);
+  }
+  
+  .login-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    padding: 40px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  [data-bs-theme="dark"] .login-card {
+    background-color: #2d3748;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .login-header {
+    margin-bottom: 30px;
+  }
+  
+  .login-icon {
+    font-size: 3rem;
+    color: #6366f1;
+    margin-bottom: 15px;
+    display: inline-block;
+  }
+  
+  [data-bs-theme="dark"] .login-icon {
+    color: #818cf8;
+  }
+  
+  .login-header h2 {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 10px;
+  }
+  
+  [data-bs-theme="dark"] .login-header h2 {
+    color: #f8fafc;
+  }
+  
+  .login-header p {
+    color: #64748b;
+  }
+  
+  [data-bs-theme="dark"] .login-header p {
+    color: #cbd5e1;
+  }
+  
+  /* Estilos para los campos del formulario */
+  .form-group {
+    position: relative;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #1e293b;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  [data-bs-theme="dark"] .form-label {
+    color: #f8fafc;
+  }
+  
+  .form-control {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    background-color: #f8fafc;
+    color: #1e293b;
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .form-control {
+    background-color: #1e293b;
+    border: 1px solid #4a5568;
+    color: #f8fafc;
+  }
+  
+  .form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    background-color: #ffffff;
+  }
+  
+  [data-bs-theme="dark"] .form-control:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+    background-color: #2d3748;
+  }
+  
+  /* Estilos para el checkbox "Recordarme" */
+  .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin-top: 0.25em;
+    border: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+  }
+  
+  [data-bs-theme="dark"] .form-check-input {
+    border: 1px solid #4a5568;
+    background-color: #1e293b;
+  }
+  
+  .form-check-input:checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
+  }
+  
+  [data-bs-theme="dark"] .form-check-input:checked {
+    background-color: #818cf8;
+    border-color: #818cf8;
+  }
+  
+  .form-check-label {
+    color: #1e293b;
+    font-size: 0.95rem;
+  }
+  
+  [data-bs-theme="dark"] .form-check-label {
+    color: #f8fafc;
+  }
+  
+  /* Enlace para recuperar contraseña */
+  .forgot-password {
+    color: #6366f1;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .forgot-password {
+    color: #818cf8;
+  }
+  
+  .forgot-password:hover {
+    color: #4f46e5;
+    text-decoration: underline;
+  }
+  
+  [data-bs-theme="dark"] .forgot-password:hover {
+    color: #a5b4fc;
+  }
+  
+  /* Estilos para los mensajes de error */
+  .error-message {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 5px;
+  }
+  
+  [data-bs-theme="dark"] .error-message {
+    color: #f87171;
+  }
+  
+  .alert {
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 25px;
+    border: none;
+  }
+  
+  .alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+  
+  [data-bs-theme="dark"] .alert-danger {
+    background-color: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+  }
+  
+  .alert-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  
+  [data-bs-theme="dark"] .alert-success {
+    background-color: rgba(52, 211, 153, 0.1);
+    color: #34d399;
+  }
+  
+  /* Estilos para el botón de envío */
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  }
+  
+  /* Estilos para el footer del formulario */
+  .login-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  [data-bs-theme="dark"] .login-footer {
+    border-top: 1px solid #4a5568;
+  }
+  
+  .register-link {
+    color: #6366f1;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .register-link {
+    color: #818cf8;
+  }
+  
+  .register-link:hover {
+    color: #4f46e5;
+    text-decoration: underline;
+  }
+  
+  [data-bs-theme="dark"] .register-link:hover {
+    color: #a5b4fc;
+  }
+  
+  /* Estilos para los botones sociales */
+  .social-login {
+    margin-top: 20px;
+  }
+  
+  .social-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .social-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+  }
+  
+  [data-bs-theme="dark"] .social-btn {
+    border: 1px solid #4a5568;
+    color: #cbd5e1;
+  }
+  
+  .social-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  [data-bs-theme="dark"] .social-btn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Responsive */
+  @media (max-width: 767.98px) {
+    .login-section {
+      padding: 40px 0;
+    }
+    
+    .login-card {
+      padding: 25px;
+    }
+  }

@@ -1,0 +1,445 @@
+{% extends 'base.html' %} 
+{% load static %}
+{% load custom_i18n %}
+
+{% block styles %}
+<!-- Critical CSS for immediate rendering -->
+<style>
+  /* Critical styles for hero section */
+  .hero {
+    padding: 100px 0 80px;
+    background: linear-gradient(to right, #4f46e5, #6366f1);
+    position: relative;
+    overflow: hidden;
+    color: white;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  .hero h1 {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+  }
+  .hero .lead {
+    position: relative;
+    z-index: 1;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .hero-btn {
+    position: relative;
+    z-index: 2;
+    background-color: #ffffff !important;
+    color: #4f46e5 !important;
+    border-color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+  .hero-btn-outline {
+    position: relative;
+    z-index: 2;
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+  /* Task board demo basic styles */
+  .task-board-demo {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    position: relative;
+    height: 450px;
+    border: 1px solid #e2e8f0;
+    z-index: 1;
+  }
+  /* Dark mode adjustments */
+  [data-bs-theme="dark"] .hero {
+    background: linear-gradient(to right, #1e1e2f, #2b2e4a);
+  }
+  [data-bs-theme="dark"] .task-board-demo {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+  }
+</style>
+
+<!-- Regular CSS load -->
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="hero-content">
+          <h1 class="display-4 fw-bold mb-4">{% trans_tag "Organize your tasks with intuitive drag and drop" %}</h1>
+          <p class="lead mb-4">{% trans_tag "Create dynamic forms, checklists, and to-do lists with our powerful drag and drop interface. Stay organized and boost your productivity." %}</p>
+          <div class="d-flex flex-column flex-sm-row gap-3">
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg hero-btn">{% trans_tag "Try for free" %}</a>
+            <button type="button" class="btn btn-outline-light btn-lg hero-btn-outline" data-bs-toggle="modal" data-bs-target="#demoModal">
+              <i class="bi bi-play-circle me-2" aria-hidden="true"></i>{% trans_tag "Watch demo" %}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="task-board-demo">
+          <div class="task-board-header">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-list me-2" aria-hidden="true"></i>
+              <span>{% trans_tag "My Tasks" %}</span>
+            </div>
+            <i class="bi bi-gear" aria-hidden="true"></i>
+          </div>
+          <div class="task-board-content">
+            <div class="task-column">
+              <div class="task-column-header">
+                <span>{% trans_tag "To Do" %}</span>
+                <span class="task-count">3</span>
+              </div>
+              <div class="task-items">
+                <div class="task-card">
+                  <h6>{% trans_tag "Research competitors" %}</h6>
+                  <p>{% trans_tag "Due tomorrow" %}</p>
+                </div>
+                <div class="task-card">
+                  <h6>{% trans_tag "Create wireframes" %}</h6>
+                  <p>{% trans_tag "Due in 3 days" %}</p>
+                </div>
+                <div class="task-card">
+                  <h6>{% trans_tag "Update documentation" %}</h6>
+                  <p>{% trans_tag "Due next week" %}</p>
+                </div>
+              </div>
+            </div>
+            <div class="task-column">
+              <div class="task-column-header">
+                <span>{% trans_tag "In Progress" %}</span>
+                <span class="task-count">2</span>
+              </div>
+              <div class="task-items">
+                <div class="task-card">
+                  <h6>{% trans_tag "Design landing page" %}</h6>
+                  <p>{% trans_tag "Started yesterday" %}</p>
+                </div>
+                <div class="task-card">
+                  <h6>{% trans_tag "Implement drag & drop" %}</h6>
+                  <p>{% trans_tag "Started today" %}</p>
+                </div>
+              </div>
+            </div>
+            <div class="task-column">
+              <div class="task-column-header">
+                <span>{% trans_tag "Completed" %}</span>
+                <span class="task-count">2</span>
+              </div>
+              <div class="task-items">
+                <div class="task-card">
+                  <h6>{% trans_tag "Setup project" %}</h6>
+                  <p>{% trans_tag "Completed 2 days ago" %}</p>
+                </div>
+                <div class="task-card">
+                  <h6>{% trans_tag "Create user stories" %}</h6>
+                  <p>{% trans_tag "Completed yesterday" %}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="add-task-button">
+          <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "Features" %}</span>
+      <h2 class="display-5 fw-bold">{% trans_tag "Everything you need to stay organized" %}</h2>
+      <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Our platform offers powerful features to help you manage tasks, create forms, and organize your work efficiently." %}</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
+          </div>
+          <h3>{% trans_tag "Drag & Drop Interface" %}</h3>
+          <p>{% trans_tag "Intuitively organize your tasks by dragging and dropping them between different lists and categories." %}</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+          </div>
+          <h3>{% trans_tag "Dynamic Checklists" %}</h3>
+          <p>{% trans_tag "Create custom checklists with subtasks, due dates, and priority levels to track your progress." %}</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="bi bi-people-fill" aria-hidden="true"></i>
+          </div>
+          <h3>{% trans_tag "Team Collaboration" %}</h3>
+          <p>{% trans_tag "Share your lists with team members, assign tasks, and track progress together in real-time." %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section id="how-it-works" class="how-it-works py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "How It Works" %}</span>
+      <h2 class="display-5 fw-bold">{% trans_tag "Simple, intuitive, and powerful" %}</h2>
+      <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Get started in minutes and transform the way you organize your tasks and projects." %}</p>
+    </div>
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <!-- Use a placeholder initially and load the real image when visible -->
+        <div class="demo-image-container">
+          <img 
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' style='background:%236366F1;'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='24' fill='white'%3EDragTask Demo%3C/text%3E%3C/svg%3E" 
+            data-src="https://placehold.co/600x400/6366F1/FFFFFF?text=DragTask+Demo" 
+            class="img-fluid rounded-4 shadow-lg lazy-image" 
+            alt="{% trans_tag 'DragTask interface demonstration' %}"
+            width="600" 
+            height="400">
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="steps">
+          <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>{% trans_tag "Create your lists" %}</h3>
+              <p>{% trans_tag "Start by creating custom lists for different projects, areas of responsibility, or types of tasks." %}</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>{% trans_tag "Add and organize tasks" %}</h3>
+              <p>{% trans_tag "Add tasks to your lists and organize them by dragging and dropping them into the right categories." %}</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>{% trans_tag "Track your progress" %}</h3>
+              <p>{% trans_tag "Move tasks between lists as you work on them and mark them as complete when you're done." %}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="pricing py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "Pricing" %}</span>
+      <h2 class="display-5 fw-bold">{% trans_tag "Simple, transparent pricing" %}</h2>
+      <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Choose the plan that's right for you and start organizing your tasks today." %}</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="pricing-card">
+          <div class="pricing-header">
+            <h3>{% trans_tag "Free" %}</h3>
+            <p>{% trans_tag "Perfect for individuals just getting started." %}</p>
+            <div class="pricing-price">
+              <span class="price">$0</span>
+              <span class="period">/{% trans_tag "month" %}</span>
+            </div>
+          </div>
+          <div class="pricing-features">
+            <ul class="list-unstyled">
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Up to 3 lists" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Basic drag & drop" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Personal use only" %}</li>
+            </ul>
+          </div>
+          <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">{% trans_tag "Get Started" %}</a>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="pricing-card popular">
+          <div class="popular-badge">{% trans_tag "Most Popular" %}</div>
+          <div class="pricing-header">
+            <h3>{% trans_tag "Pro" %}</h3>
+            <p>{% trans_tag "Perfect for professionals and small teams." %}</p>
+            <div class="pricing-price">
+              <span class="price">$9.99</span>
+              <span class="period">/{% trans_tag "month" %}</span>
+            </div>
+          </div>
+          <div class="pricing-features">
+            <ul class="list-unstyled">
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Unlimited lists" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Advanced drag & drop" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Team collaboration (up to 5)" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Custom templates" %}</li>
+            </ul>
+          </div>
+          <a href="{% url 'register' %}" class="btn btn-primary w-100">{% trans_tag "Get Started" %}</a>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="pricing-card">
+          <div class="pricing-header">
+            <h3>{% trans_tag "Enterprise" %}</h3>
+            <p>{% trans_tag "Perfect for large teams and organizations." %}</p>
+            <div class="pricing-price">
+              <span class="price">$24.99</span>
+              <span class="period">/{% trans_tag "month" %}</span>
+            </div>
+          </div>
+          <div class="pricing-features">
+            <ul class="list-unstyled">
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Everything in Pro" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Unlimited team members" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Advanced analytics" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Priority support" %}</li>
+              <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {% trans_tag "Custom integrations" %}</li>
+            </ul>
+          </div>
+          <a href="#" class="btn btn-outline-primary w-100" id="contact-sales-btn">{% trans_tag "Contact Sales" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta py-5">
+  <div class="container text-center">
+    <h2 class="display-5 fw-bold mb-4">{% trans_tag "Ready to transform the way you organize your tasks?" %}</h2>
+    <p class="lead mb-5 mx-auto" style="max-width: 600px;">{% trans_tag "Join thousands of users who have already improved their productivity with DragTask." %}</p>
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <form class="cta-form" id="signup-form">
+          <div class="input-group mb-3">
+            <input type="email" class="form-control form-control-lg" placeholder="{% trans_tag 'Enter your email' %}" aria-label="{% trans_tag 'Email address' %}" required>
+            <button class="btn btn-primary btn-lg" type="submit">
+              <span class="d-flex align-items-center">
+                <span id="submit-text">{% trans_tag "Get Started" %}</span>
+                <span id="loading-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+              </span>
+            </button>
+          </div>
+          <small class="text-muted">{% trans_tag "Start your free trial. No credit card required." %}</small>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo Video Modal -->
+<div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="demoModalLabel">{% trans_tag "DragTask Demo" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <!-- Video will be loaded only when modal is opened -->
+          <div id="video-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize task board demo interactivity
+    const taskCards = document.querySelectorAll('.task-card');
+    
+    taskCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-5px)';
+        card.style.boxShadow = '0 8px 15px rgba(0, 0, 0, 0.1)';
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+        card.style.boxShadow = '';
+      });
+    });
+    
+    // Demo video modal
+    const demoModal = document.getElementById('demoModal');
+    if (demoModal) {
+      demoModal.addEventListener('show.bs.modal', function () {
+        const videoContainer = document.getElementById('video-container');
+        videoContainer.innerHTML = `
+          <iframe 
+            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0" 
+            title="DragTask Demo Video" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        `;
+      });
+      
+      demoModal.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('video-container').innerHTML = '';
+      });
+    }
+    
+    // Form submission with loading indicator
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+      signupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitText = document.getElementById('submit-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        
+        // Show loading state
+        submitText.textContent = '{% trans_tag "Processing..." %}';
+        loadingSpinner.classList.remove('d-none');
+        
+        // Simulate form submission
+        setTimeout(() => {
+          window.location.href = "{% url 'register' %}";
+        }, 1000);
+      });
+    }
+    
+    // Contact sales button
+    const contactSalesBtn = document.getElementById('contact-sales-btn');
+    if (contactSalesBtn) {
+      contactSalesBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = 'mailto:sales@dragtask.com?subject={% trans_tag "Enterprise Plan Inquiry" %}';
+      });
+    }
+  });
+</script>
+
+<!-- Load the demo script -->
+<script src="{% static 'js/demo-hero.js' %}"></script>
+{% endblock %}

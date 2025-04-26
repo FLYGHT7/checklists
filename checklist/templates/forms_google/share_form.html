@@ -1,0 +1,1497 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}Compartir Formulario - {{ form.title }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
+<link rel="stylesheet" href="{% static 'css/permissions.css' %}?v={% now 'U' %}">
+<style>
+  /* Estilos mejorados para la página de compartir formulario */
+  :root {
+    --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    --card-border: 1px solid rgba(0, 0, 0, 0.08);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius-lg: 12px;
+    --border-radius-md: 8px;
+    --border-radius-sm: 6px;
+  }
+  
+  [data-bs-theme="dark"] {
+    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    --card-border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  /* Estilos para la página de compartir formulario */
+  .forms-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 2.5rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .forms-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 0 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.1)' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    z-index: 0;
+  }
+  
+  [data-bs-theme="dark"] .forms-header {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .forms-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .forms-header-content {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .forms-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: fadeInDown 0.6s ease-out;
+    background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    display: inline-block;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 0.5rem;
+  }
+  
+  .forms-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    line-height: 1.7;
+    animation: fadeInUp 0.6s ease-out;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .forms-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(4px);
+    animation: fadeInLeft 0.6s ease-out;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .forms-badge i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  /* Estilos para las tarjetas */
+  .form-card {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid var(--neutral-200);
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  [data-bs-theme="dark"] .form-card {
+    background-color: var(--neutral-800);
+    border-color: var(--neutral-700);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .form-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  [data-bs-theme="dark"] .form-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+  
+  .form-card-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    position: relative;
+  }
+  
+  .form-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    display: box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+    max-height: 3.25rem;
+    white-space: normal;
+    position: relative;
+  }
+  
+  .form-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Botones de acción en el header */
+  .header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .header-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  
+  .header-btn.primary {
+    background-color: white;
+    color: var(--primary);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-btn.primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .header-btn.secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+  }
+  
+  .header-btn.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+  }
+  
+  /* Estilos para las tarjetas de compartir */
+  .share-card {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid var(--neutral-200);
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  [data-bs-theme="dark"] .share-card {
+    background-color: var(--neutral-800);
+    border-color: var(--neutral-700);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .share-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+  
+  [data-bs-theme="dark"] .share-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+  
+  .share-card-header {
+    padding: 1.5rem;
+    background-color: var(--neutral-50);
+    border-bottom: 1px solid var(--neutral-200);
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  [data-bs-theme="dark"] .share-card-header {
+    background-color: var(--neutral-750);
+    border-color: var(--neutral-700);
+  }
+  
+  .share-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .share-card-title i {
+    margin-right: 0.75rem;
+    color: var(--primary);
+    font-size: 1.25rem;
+    background: rgba(var(--bs-primary-rgb), 0.1);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  
+  .share-card-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Estilos para la sección de enlaces compartibles */
+  .share-option {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--border-radius-md);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  [data-bs-theme="dark"] .share-option {
+    border-color: var(--neutral-700);
+  }
+  
+  .share-option:hover {
+    border-color: var(--primary);
+    box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.1);
+  }
+  
+  .share-option.active {
+    border-color: var(--primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+  
+  .share-option.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary-gradient);
+  }
+  
+  .share-option-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  
+  .share-option-radio {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+  }
+  
+  .share-option-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin: 0;
+    color: var(--neutral-800);
+  }
+  
+  [data-bs-theme="dark"] .share-option-title {
+    color: var(--neutral-100);
+  }
+  
+  .share-option-description {
+    margin-left: 2.5rem;
+    color: var(--neutral-600);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  
+  [data-bs-theme="dark"] .share-option-description {
+    color: var(--neutral-400);
+  }
+  
+  .share-link-container {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .share-link-input {
+    flex-grow: 1;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.95rem;
+    background-color: var(--neutral-50);
+    color: var(--neutral-700);
+    margin-right: 0.75rem;
+    transition: var(--transition-smooth);
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  
+  .share-link-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  [data-bs-theme="dark"] .share-link-input {
+    background-color: var(--neutral-750);
+    border-color: var(--neutral-600);
+    color: var(--neutral-300);
+  }
+  
+  .share-link-copy {
+    padding: 0.85rem 1.25rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .share-link-copy:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+  }
+  
+  .share-link-copy:active {
+    transform: translateY(0);
+  }
+  
+  .share-expiration {
+    margin-top: 2rem;
+  }
+  
+  .share-expiration-title {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--neutral-800);
+    font-size: 1.15rem;
+  }
+  
+  [data-bs-theme="dark"] .share-expiration-title {
+    color: var(--neutral-100);
+  }
+  
+  .share-expiration-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .share-expiration-option {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  [data-bs-theme="dark"] .share-expiration-option {
+    border-color: var(--neutral-600);
+  }
+  
+  .share-expiration-option:hover {
+    border-color: var(--primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+  
+  .share-expiration-option.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  .share-button {
+    margin-top: 2rem;
+    padding: 0.85rem 1.75rem;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  .share-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.3);
+  }
+  
+  .share-button:active {
+    transform: translateY(0);
+  }
+  
+  .share-links-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 0.5rem;
+  }
+  
+  .share-links-table th,
+  .share-links-table td {
+    padding: 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+  
+  [data-bs-theme="dark"] .share-links-table th,
+  [data-bs-theme="dark"] .share-links-table td {
+    border-color: var(--neutral-700);
+  }
+  
+  .share-links-table th {
+    font-weight: 600;
+    color: var(--neutral-600);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 0.75rem;
+  }
+  
+  [data-bs-theme="dark"] .share-links-table th {
+    color: var(--neutral-400);
+  }
+  
+  .share-links-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .share-links-table tr {
+    transition: var(--transition-smooth);
+  }
+  
+  .share-links-table tbody tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.02);
+  }
+  
+  [data-bs-theme="dark"] .share-links-table tbody tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+  
+  .share-links-table .link-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  
+  .share-links-table .link-action {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--neutral-100);
+    color: var(--neutral-600);
+    border: 1px solid var(--neutral-200);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+  }
+  
+  [data-bs-theme="dark"] .share-links-table .link-action {
+    background-color: var(--neutral-750);
+    border-color: var(--neutral-700);
+    color: var(--neutral-400);
+  }
+  
+  .share-links-table .link-action:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  .share-links-table .link-action.delete {
+    color: var(--danger);
+  }
+  
+  .share-links-table .link-action.delete:hover {
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    box-shadow: 0 4px 8px rgba(var(--bs-danger-rgb), 0.2);
+  }
+  
+  .share-links-table .link-permission {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  .share-links-table .link-permission.editor {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+  
+  .share-links-table .link-permission.responder {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  
+  .share-links-table .link-permission.viewer {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+  
+  .share-links-table .link-expiration {
+    font-size: 0.9rem;
+    color: var(--neutral-600);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  [data-bs-theme="dark"] .share-links-table .link-expiration {
+    color: var(--neutral-400);
+  }
+  
+  .share-links-table .link-expiration.expired {
+    color: var(--danger);
+  }
+  
+  .share-tip {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    background-color: rgba(var(--bs-info-rgb), 0.08);
+    border-left: 4px solid var(--info);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    color: var(--neutral-700);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  [data-bs-theme="dark"] .share-tip {
+    color: var(--neutral-300);
+    background-color: rgba(var(--bs-info-rgb), 0.05);
+  }
+  
+  .share-tip i {
+    color: var(--info);
+    font-size: 1.25rem;
+    margin-top: 0.1rem;
+  }
+  
+  .share-tip-content {
+    flex: 1;
+    line-height: 1.5;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  
+  .empty-state-icon {
+    font-size: 3.5rem;
+    color: var(--neutral-400);
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+    background: rgba(var(--bs-primary-rgb), 0.1);
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .empty-state-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--neutral-700);
+  }
+  
+  [data-bs-theme="dark"] .empty-state-title {
+    color: var(--neutral-300);
+  }
+  
+  .empty-state-description {
+    color: var(--neutral-600);
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  
+  [data-bs-theme="dark"] .empty-state-description {
+    color: var(--neutral-400);
+  }
+  
+  /* Estilos para la lista de usuarios */
+  .user-list {
+    margin-top: 1rem;
+  }
+  
+  .user-item {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--neutral-200);
+    transition: var(--transition-smooth);
+  }
+  
+  [data-bs-theme="dark"] .user-item {
+    border-color: var(--neutral-700);
+  }
+  
+  .user-item:last-child {
+    border-bottom: none;
+  }
+  
+  .user-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.02);
+  }
+  
+  [data-bs-theme="dark"] .user-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+  
+  .user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .user-info {
+    flex-grow: 1;
+  }
+  
+  .user-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: var(--neutral-800);
+  }
+  
+  [data-bs-theme="dark"] .user-name {
+    color: var(--neutral-200);
+  }
+  
+  .user-email {
+    color: var(--neutral-600);
+    font-size: 0.9rem;
+  }
+  
+  [data-bs-theme="dark"] .user-email {
+    color: var(--neutral-400);
+  }
+  
+  .user-permission {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+  
+  .user-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .user-action {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--neutral-100);
+    color: var(--neutral-600);
+    border: 1px solid var(--neutral-200);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+  }
+  
+  [data-bs-theme="dark"] .user-action {
+    background-color: var(--neutral-750);
+    border-color: var(--neutral-700);
+    color: var(--neutral-400);
+  }
+  
+  .user-action:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  .user-action.delete {
+    color: var(--danger);
+  }
+  
+  .user-action.delete:hover {
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    box-shadow: 0 4px 8px rgba(var(--bs-danger-rgb), 0.2);
+  }
+  
+  .user-action.edit {
+    color: var(--primary);
+  }
+  
+  .user-action.edit:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  
+  /* Toast de notificación */
+  .toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+  }
+  
+  .toast {
+    background-color: white;
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid var(--primary);
+    animation: slideInUp 0.3s ease forwards;
+    max-width: 350px;
+  }
+  
+  [data-bs-theme="dark"] .toast {
+    background-color: var(--neutral-800);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .toast.toast-success {
+    border-left-color: var(--success);
+  }
+  
+  .toast-body {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .toast-body i {
+    font-size: 1.25rem;
+    color: var(--success);
+  }
+  
+  @keyframes slideInUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Layout de dos columnas */
+  .share-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .share-grid .share-card {
+    margin-bottom: 0;
+  }
+  
+  .share-grid-full {
+    grid-column: 1 / -1;
+  }
+  
+  /* Animaciones */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 992px) {
+    .share-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .forms-title {
+      font-size: 2rem;
+    }
+    
+    .forms-subtitle {
+      font-size: 1rem;
+    }
+    
+    .header-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .header-btn {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .share-card-header {
+      padding: 1.25rem;
+    }
+    
+    .share-card-body {
+      padding: 1.25rem;
+    }
+    
+    .share-links-table th,
+    .share-links-table td {
+      padding: 1rem 0.75rem;
+    }
+    
+    .share-links-table th:first-child,
+    .share-links-table td:first-child {
+      padding-left: 1.25rem;
+    }
+    
+    .share-links-table th:last-child,
+    .share-links-table td:last-child {
+      padding-right: 1.25rem;
+    }
+    
+    .share-expiration-options {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .share-expiration-option {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    
+    .share-link-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .share-link-input {
+      margin-right: 0;
+      margin-bottom: 0.75rem;
+    }
+    
+    /* Tabla responsiva */
+    .share-links-table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .share-links-table thead {
+      display: none;
+    }
+    
+    .share-links-table tbody {
+      display: block;
+      width: 100%;
+    }
+    
+    .share-links-table tr {
+      display: block;
+      margin-bottom: 1rem;
+      border: 1px solid var(--neutral-200);
+      border-radius: var(--border-radius-md);
+      padding: 1rem;
+    }
+    
+    [data-bs-theme="dark"] .share-links-table tr {
+      border-color: var(--neutral-700);
+    }
+    
+    .share-links-table td {
+      display: block;
+      text-align: right;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--neutral-200);
+      position: relative;
+    }
+    
+    [data-bs-theme="dark"] .share-links-table td {
+      border-color: var(--neutral-700);
+    }
+    
+    .share-links-table td:last-child {
+      border-bottom: none;
+    }
+    
+    .share-links-table td::before {
+      content: attr(data-label);
+      float: left;
+      font-weight: 600;
+      color: var(--neutral-600);
+    }
+    
+    [data-bs-theme="dark"] .share-links-table td::before {
+      color: var(--neutral-400);
+    }
+    
+    .share-links-table .link-actions {
+      justify-content: flex-start;
+    }
+    
+    /* Usuario responsivo */
+    .user-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .user-avatar {
+      margin-bottom: 1rem;
+    }
+    
+    .user-info {
+      margin-bottom: 1rem;
+      width: 100%;
+    }
+    
+    .user-permission {
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+    
+    .user-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  /* Estilos para el selector de permisos */
+  .permission-select {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    border: 1px solid var(--neutral-300);
+    background-color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 140px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+    padding-right: 2.5rem;
+  }
+
+  [data-bs-theme="dark"] .permission-select {
+    background-color: var(--neutral-800);
+    border-color: var(--neutral-600);
+    color: var(--neutral-200);
+  }
+
+  /* Estilos para las opciones del select en modo oscuro */
+  [data-bs-theme="dark"] .permission-select option {
+    background-color: var(--neutral-800);
+    color: var(--neutral-200);
+  }
+
+  .permission-select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.1);
+  }
+
+  .permission-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.2);
+  }
+
+  .permission-edit-form {
+    margin: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Estilos para los badges de permisos */
+  .permission-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .permission-badge.editor {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+
+  .permission-badge.responder {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+
+  .permission-badge.viewer {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<!-- Header con gradiente -->
+<div class="forms-header">
+  <div class="container">
+    <div class="forms-container">
+      <div class="forms-header-content">
+        <div class="forms-badge">
+          <i class="bi bi-share"></i>{% trans_tag "Share" %}
+        </div>
+        <h1 class="forms-title">{% trans_tag "Share Form" %} "{{ form.title }}"</h1>
+        <p class="forms-subtitle">
+          {% trans_tag "Manage user permissions and generate share links for your form" %}
+        </p>
+        
+        <div class="header-actions">
+          <a href="{% url 'gform_edit' form_id=form.id %}" class="header-btn secondary">
+            <i class="bi bi-arrow-left me-2"></i> {% trans_tag "Back to editor" %}
+          </a>
+          <a href="{% url 'gform_view' form_id=form.id %}" class="header-btn primary">
+            <i class="bi bi-eye me-2"></i> {% trans_tag "View form" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="forms-container">
+    {% if messages %}
+    <div class="messages mb-4">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} animate-fade-in">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="share-grid">
+      <!-- Tarjeta para usuarios con acceso -->
+      <div class="share-card">
+        <div class="share-card-header">
+          <h2 class="share-card-title">
+            <i class="bi bi-people"></i> {% trans_tag "Users with access" %}
+          </h2>
+        </div>
+        <div class="share-card-body">
+          {% if form_permissions %}
+            <div class="user-list">
+              {% for permission in form_permissions %}
+              <div class="user-item">
+                <div class="user-avatar">
+                  {{ permission.user.username|first|upper }}
+                </div>
+                <div class="user-info">
+                  <div class="user-name">{{ permission.user.get_full_name|default:permission.user.username }}</div>
+                  <div class="user-email">{{ permission.user.email }}</div>
+                </div>
+                <div class="user-permission">
+                  
+                  <form method="post" action="{% url 'gform_add_permission' form_id=form.id %}" class="permission-edit-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_email" value="{{ permission.user.email }}">
+                    <select name="permission_type" class="permission-select" onchange="this.form.submit()">
+                      <option value="viewer" {% if permission.permission_type == 'viewer' %}selected{% endif %}>{% trans_tag "Viewer" %}</option>
+                      <option value="responder" {% if permission.permission_type == 'responder' %}selected{% endif %}>{% trans_tag "Responder" %}</option>
+                      <option value="editor" {% if permission.permission_type == 'editor' %}selected{% endif %}>{% trans_tag "Editor" %}</option>
+                    </select>
+                  </form>
+                </div>
+                <div class="user-actions">
+                  <form method="post" action="{% url 'gform_remove_permission' permission_id=permission.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="user-action delete" title="Eliminar permiso" onclick="return confirm('¿Estás seguro de que deseas eliminar este permiso?');">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="bi bi-people"></i>
+              </div>
+              <h3 class="empty-state-title">{% trans_tag "No users with access" %}</h3>
+              <p class="empty-state-description">{% trans_tag "When you share your form with other users, they will appear here" %}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Tarjeta para crear enlaces de compartir -->
+      <div class="share-card">
+        <div class="share-card-header">
+          <h2 class="share-card-title">
+            <i class="bi bi-link-45deg"></i> {% trans_tag "Create share link" %}
+          </h2>
+        </div>
+        <div class="share-card-body">
+          <form method="post" action="{% url 'gform_create_share_link' form_id=form.id %}">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <h3 class="mb-3">{% trans_tag "Access type" %}</h3>
+              
+              <div class="share-option {% if form_share_link.permission_type == 'responder' %}active{% endif %}">
+                <div class="share-option-header">
+                  <input type="radio" name="permission_type" value="responder" id="permission_responder" class="share-option-radio" {% if form_share_link.permission_type == 'responder' %}checked{% endif %} checked>
+                  <label for="permission_responder" class="share-option-title">{% trans_tag "Responder" %}</label>
+                </div>
+                <div class="share-option-description">
+                  Cualquiera con el enlace puede responder al formulario sin necesidad de iniciar sesión
+                </div>
+              </div>
+              
+              <div class="share-option {% if form_share_link.permission_type == 'viewer' %}active{% endif %}">
+                <div class="share-option-header">
+                  <input type="radio" name="permission_type" value="viewer" id="permission_viewer" class="share-option-radio" {% if form_share_link.permission_type == 'viewer' %}checked{% endif %}>
+                  <label for="permission_viewer" class="share-option-title">{% trans_tag "Viewer" %}</label>
+                </div>
+                <div class="share-option-description">
+                  Cualquiera con el enlace puede ver el formulario pero no puede responderlo ni editarlo
+                </div>
+              </div>
+              
+              <div class="share-option {% if form_share_link.permission_type == 'editor' %}active{% endif %}">
+                <div class="share-option-header">
+                  <input type="radio" name="permission_type" value="editor" id="permission_editor" class="share-option-radio" {% if form_share_link.permission_type == 'editor' %}checked{% endif %}>
+                  <label for="permission_editor" class="share-option-title">{% trans_tag "Editor" %}</label>
+                </div>
+                <div class="share-option-description">
+                  Cualquiera con el enlace puede editar el formulario (requiere iniciar sesión con una cuenta)
+                </div>
+              </div>
+            </div>
+            
+            <div class="share-expiration">
+              <h3 class="share-expiration-title">{% trans_tag "Link expiration" %}</h3>
+              
+              <div class="share-expiration-options">
+                <label class="share-expiration-option {% if form_share_link.expires_days == 'never' %}active{% endif %}">
+                  <input type="radio" name="expires_in" value="never" {% if form_share_link.expires_days == 'never' %}checked{% endif %} checked class="d-none">
+                  {% trans_tag "Never expires" %}
+                </label>
+                
+                <label class="share-expiration-option {% if form_share_link.expires_days == '1d' %}active{% endif %}">
+                  <input type="radio" name="expires_in" value="1d" {% if form_share_link.expires_days == '1d' %}checked{% endif %} class="d-none">
+                  {% trans_tag "1 day" %}
+                </label>
+                
+                <label class="share-expiration-option {% if form_share_link.expires_days == '7d' %}active{% endif %}">
+                  <input type="radio" name="expires_in" value="7d" {% if form_share_link.expires_days == '7d' %}checked{% endif %} class="d-none">
+                  {% trans_tag "7 days" %}
+                </label>
+                
+                <label class="share-expiration-option {% if form_share_link.expires_days == '30d' %}active{% endif %}">
+                  <input type="radio" name="expires_in" value="30d" {% if form_share_link.expires_days == '30d' %}checked{% endif %} class="d-none">
+                  {% trans_tag "30 days" %}
+                </label>
+              </div>
+            </div>
+            
+            <button type="submit" class="share-button">
+              <i class="bi bi-link-45deg me-2"></i> {% trans_tag "Create link" %}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tarjeta para enlaces activos -->
+      <div class="share-card share-grid-full">
+        <div class="share-card-header">
+          <h2 class="share-card-title">
+            <i class="bi bi-link"></i> {% trans_tag "Active links" %}
+          </h2>
+        </div>
+        <div class="share-card-body">
+          {% if share_links %}
+            <table class="share-links-table">
+              <thead>
+                <tr>
+                  <th>{% trans_tag "Link" %}</th>
+                  <th>{% trans_tag "Permission" %}</th>
+                  <th>{% trans_tag "Expiration" %}</th>
+                  <th>{% trans_tag "Actions" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for link in share_links %}
+                <tr>
+                  <td data-label="Enlace">
+                    <div class="share-link-container">
+                      <input type="text" class="share-link-input" value="{{ request.scheme }}://{{ request.get_host }}{% url 'gform_shared_link' token=link.token %}" readonly id="link-{{ link.id }}">
+                      <button class="share-link-copy" onclick="copyLink('link-{{ link.id }}')">
+                        <i class="bi bi-clipboard me-1"></i> {% trans_tag "Copy" %}
+                      </button>
+                    </div>
+                  </td>
+                  <td data-label="Permiso">
+                    <span class="link-permission {{ link.permission_type }}">
+                      <i class="bi bi-{% if link.permission_type == 'editor' %}pencil-square{% elif link.permission_type == 'responder' %}chat-dots{% else %}eye{% endif %}"></i>
+                      {% if link.permission_type == 'editor' %}
+                        {% trans_tag "Editor" %}
+                      {% elif link.permission_type == 'responder' %}
+                        {% trans_tag "Responder" %}
+                      {% else %}
+                        {% trans_tag "Viewer" %}
+                      {% endif %}
+                    </span>
+                  </td>
+                  <td data-label="Expiración">
+                    <span class="link-expiration {% if not link.is_valid %}expired{% endif %}">
+                      <i class="bi bi-{% if link.expires_at %}{% if link.is_valid %}clock{% else %}x-circle{% endif %}{% else %}infinity{% endif %}"></i>
+                      {% if link.expires_at %}
+                        {% if link.is_valid %}
+                          Expira el {{ link.expires_at|date:"d/m/Y H:i" }}
+                        {% else %}
+                          {% trans_tag "Expired" %}
+                        {% endif %}
+                      {% else %}
+                        {% trans_tag "Never expires" %}
+                      {% endif %}
+                    </span>
+                  </td>
+                  <td data-label="Acciones">
+                    <div class="link-actions">
+                      <form method="post" action="{% url 'gform_delete_share_link' link_id=link.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="link-action delete" title="Eliminar enlace" onclick="return confirm('¿Estás seguro de que deseas eliminar este enlace?');">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <i class="bi bi-link-slash"></i>
+              </div>
+              <h3 class="empty-state-title">{% trans_tag "No active links" %}</h3>
+              <p class="empty-state-description">{% trans_tag "Create links to share your form with anyone quickly and securely" %}</p>
+            </div>
+          {% endif %}
+          
+          <div class="share-tip">
+            <i class="bi bi-info-circle"></i>
+            <div class="share-tip-content">
+              Los enlaces de compartir permiten a cualquier persona acceder a tu formulario sin necesidad de tener una cuenta. Para mayor seguridad, puedes establecer una fecha de expiración para limitar el tiempo de acceso.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Activar/desactivar opciones de compartir
+    const shareOptions = document.querySelectorAll('.share-option');
+    shareOptions.forEach(option => {
+      const radio = option.querySelector('input[type="radio"]');
+      option.addEventListener('click', function() {
+        radio.checked = true;
+        // Actualizar clases active
+        shareOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+      });
+    });
+    
+    // Activar/desactivar opciones de expiración
+    const expirationOptions = document.querySelectorAll('.share-expiration-option');
+    expirationOptions.forEach(option => {
+      const radio = option.querySelector('input[type="radio"]');
+      option.addEventListener('click', function() {
+        radio.checked = true;
+        // Actualizar clases active
+        expirationOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+      });
+    });
+  });
+  
+  // Función para copiar enlaces
+  function copyLink(inputId) {
+    const input = document.getElementById(inputId);
+    input.select();
+    document.execCommand('copy');
+    
+    // Mostrar notificación
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-success';
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    toast.innerHTML = `
+      <div class="toast-body">
+        <i class="bi bi-clipboard-check"></i>
+        <span>Enlace copiado al portapapeles</span>
+      </div>
+    `;
+    
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container';
+    toastContainer.appendChild(toast);
+    document.body.appendChild(toastContainer);
+    
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(toastContainer);
+      }, 300);
+    }, 3000);
+  }
+</script>
+{% endblock %}

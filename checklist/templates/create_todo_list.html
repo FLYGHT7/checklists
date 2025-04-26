@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "New List" %} - DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/todolist.css' %}">
+<style>
+  /* Anular el efecto hover del form-card */
+  .form-card:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-md) !important;
+  }
+  
+  /* Estilo para el botón de crear lista con solo icono */
+  .create-list-btn {
+    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .create-list-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+  }
+  
+  .create-list-btn i {
+    font-size: 1.4rem;
+    margin-right: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="form-section py-5">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="fw-bold">{% trans_tag "New Task List" %}</h1>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{% url 'todo_lists' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mx-auto">
+        <div class="form-card">
+          <div class="form-card-body">
+            <form method="post">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">{% trans_tag form.name.label %}</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                  <div class="invalid-feedback d-block">
+                    {% for error in form.name.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-plus-lg" style="display: inline-flex; align-items: center; justify-content: center; line-height: 1;"></i>
+                  {% trans_tag "Create List" %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Añadir clases de Bootstrap a los campos del formulario
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    
+    if (nameInput && !nameInput.classList.contains('form-control')) {
+      nameInput.classList.add('form-control');
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,2367 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}Editar {{ gform.title }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
+<link rel="stylesheet" href="{% static 'css/edit_form.css' %}?v={% now 'U' %}">
+<link rel="stylesheet" href="{% static 'css/permissions.css' %}?v={% now 'U' %}">
+<style>
+  /* CSS crítico que debe cargarse inmediatamente */
+  .edit-form-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 1.5rem 0;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .edit-form-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .question-bank-card {
+    height: calc(100vh - 150px);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+  }
+  
+  .question-bank-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+  
+  .bank-question-item {
+    cursor: grab;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .drop-target {
+    border: 2px dashed var(--primary);
+    background-color: rgba(99, 102, 241, 0.05);
+  }
+
+  /* Destacar elementos duplicados */
+  .duplicate-item {
+    border-left: 3px solid #dc3545;
+    background-color: rgba(220, 53, 69, 0.05);
+  }
+
+  /* Estilos para la sección de permisos */
+  .permissions-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+  }
+  
+  [data-bs-theme="dark"] .permissions-section {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .permissions-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .permissions-title i {
+    margin-right: 0.5rem;
+    color: var(--primary);
+  }
+  
+  .permission-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  
+  .permission-editor {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+  
+  .permission-responder {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  
+  .permission-viewer {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+  
+  .share-link-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: white;
+    border: 1px solid #e9ecef;
+  }
+  
+  [data-bs-theme="dark"] .share-link-item {
+    background-color: #1a202c;
+    border-color: #4a5568;
+  }
+  
+  .share-link-icon {
+    margin-right: 0.5rem;
+    color: #6c757d;
+  }
+  
+  .share-link-text {
+    flex-grow: 1;
+    font-family: monospace;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .share-link-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+  
+  .share-link-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .share-options {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <!-- Header con gradiente -->
+  <div class="edit-form-header">
+    <div class="container">
+      <div class="edit-form-container">
+        <div class="edit-form-header-content">
+          <div class="edit-form-badge">
+            <i class="bi bi-pencil-square"></i>{% trans_tag "Form Editor" %}
+          </div>
+          <h1 class="edit-form-title">{{ gform.title }}</h1>
+          <p class="edit-form-subtitle">
+            {% trans_tag "Customize your form by adding questions and configuring options" %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modificar la estructura de columnas para permitir el sidebar colapsable -->
+  <div class="container-fluid mb-5">
+    <div class="row">
+      <!-- Columna del banco de preguntas (izquierda) -->
+      <div class="col-md-3 col-sidebar" id="sidebarColumn">
+        
+        <div class="question-bank-card" id="questionBankCard">
+          <button type="button" class="sidebar-toggle" id="sidebarToggle" title="{% trans_tag 'Expand/Collapse question bank' %}">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="question-bank-header">
+            <h3 class="card-title mb-0">
+              <i class="bi bi-archive me-2"></i>{% trans_tag "Question Bank" %}
+            </h3>
+          </div>
+          
+          <div class="question-bank-body">
+            {% if bank_questions %}
+              <div id="questionBank" class="bank-questions-list">
+                {% for question in bank_questions %}
+                  <div class="bank-question-item" data-id="{{ question.id }}" data-type="{{ question.question_type }}" data-text="{{ question.text|slugify }}" data-hash="{{ question.hash|default:'' }}" draggable="true">
+                    <span class="bank-question-type">{{ question.get_question_type_display }}</span>
+                    <div class="bank-question-text">{{ question.text }}</div>
+                    <div class="bank-question-meta">
+                      <div class="bank-question-usage">
+                        <i class="bi bi-bar-chart"></i> {% trans_tag "Used" %} {{ question.usage_count }} {% trans_tag "times" %}
+                      </div>
+                    </div>
+                    <div class="bank-question-actions">
+                      <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="{{ question.id }}" title="{% trans_tag 'Add to form' %}">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                      <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="{{ question.id }}" title="{% trans_tag 'Edit question' %}">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="{{ question.id }}" title="{% trans_tag 'Delete question' %}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="bank-empty">
+                <i class="bi bi-archive"></i>
+                <h5>{% trans_tag "No saved questions" %}</h5>
+                <p>{% trans_tag "Save questions to the bank to reuse them in other forms." %}</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Columna del formulario (derecha) -->
+      <div class="col-md-9 col-content" id="contentColumn">
+        <!-- Barra de acciones principal -->
+        <div class="action-bar mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'gform_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> {% trans_tag "Back to list" %}
+              </a>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{% url 'gform_view' gform.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-eye me-1"></i> {% trans_tag "View" %}
+              </a>
+              <a href="{% url 'gform_share_form' form_id=gform.id %}" class="btn btn-primary">
+                <i class="bi bi-share me-1"></i> {% trans_tag "Share" %}
+              </a>
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="moreActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-three-dots-vertical"></i> {% trans_tag "More actions" %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreActionsDropdown">
+                  <li>
+                    {% if gform.questions.count > 0 %}
+                      <a class="dropdown-item responder-btn" href="{% url 'gform_respond' form_id=gform.id %}" data-has-questions="true">
+                        <i class="bi bi-pencil-square me-2"></i>{% trans_tag "Respond" %}
+                      </a>
+                    {% else %}
+                      <a class="dropdown-item responder-btn" href="#" data-has-questions="false">
+                        <i class="bi bi-pencil-square me-2"></i>{% trans_tag "Respond" %} ({% trans_tag "no questions" %})
+                      </a>
+                    {% endif %}
+                  </li>
+                  <li>
+                    {% if gform.responses.count > 0 %}
+                      <a class="dropdown-item responses-btn" href="{% url 'gform_responses' gform.id %}" data-has-responses="true">
+                        <i class="bi bi-bar-chart me-2"></i>{% trans_tag "Responses" %}
+                      </a>
+                    {% else %}
+                      <a class="dropdown-item responses-btn" href="#" data-has-responses="false">
+                        <i class="bi bi-bar-chart me-2"></i>{% trans_tag "Responses" %} ({% trans_tag "no data" %})
+                      </a>
+                    {% endif %}
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'gform_list' %}">
+                      <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back to list" %}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de publicación -->
+        <div class="status-card">
+          <div class="status-info">
+            <h5 class="mb-0">{% trans_tag "Status" %}: 
+              {% if gform.is_published %}
+                <span class="status-badge published">{% trans_tag "Published" %}</span>
+              {% else %}
+                <span class="status-badge draft">{% trans_tag "Draft" %}</span>
+              {% endif %}
+            </h5>
+            <p class="text-muted mb-0">
+              {% if gform.is_published %}
+                {% trans_tag "The form is available to receive responses." %}
+              {% else %}
+                {% trans_tag "The form is not available to the public." %}
+              {% endif %}
+            </p>
+          </div>
+          <form method="post" action="{% url 'gform_toggle_publish' gform.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn {% if gform.is_published %}btn-outline-warning{% else %}btn-success{% endif %}">
+              {% if gform.is_published %}
+                <i class="bi bi-eye-slash me-1"></i>{% trans_tag "Unpublish" %}
+              {% else %}
+                <i class="bi bi-eye me-1"></i>{% trans_tag "Publish" %}
+              {% endif %}
+            </button>
+          </form>
+        </div>
+
+        <!-- Formulario de detalles -->
+        <div class="edit-form-card">
+          <div class="edit-form-card-header">
+            <h3 class="card-title mb-0">{% trans_tag "Form Details" %}</h3>
+          </div>
+          <div class="edit-form-card-body">
+            <form method="post" action="{% url 'gform_edit' gform.id %}">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="{{ form.title.id_for_label }}" class="form-label">{% trans_tag "Form title" %} *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                  <div class="invalid-feedback d-block">
+                    {% for error in form.title.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="mb-3">
+                <label for="{{ form.description.id_for_label }}" class="form-label">{% trans_tag "Description (optional)" %}</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                  <div class="invalid-feedback d-block">
+                    {% for error in form.description.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="mb-3 form-check">
+                {{ form.is_published }}
+                <label for="{{ form.is_published.id_for_label }}" class="form-check-label">{% trans_tag "Publish form" %}</label>
+                {% if form.is_published.errors %}
+                  <div class="invalid-feedback d-block">
+                    {% for error in form.is_published.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-lg me-2"></i>{% trans_tag "Save Changes" %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Preguntas del Formulario -->
+        <div class="edit-form-card">
+          <div class="edit-form-card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">{% trans_tag "Questions" %}</h3>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+              <i class="bi bi-plus-lg me-2"></i>{% trans_tag "Add Question" %}
+            </button>
+          </div>
+          <div class="edit-form-card-body">
+            <div id="questionsList">
+              {% if questions %}
+                {% for question in questions %}
+                  <div class="question-card" data-id="{{ question.id }}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <div>
+                        <span class="badge bg-info">{{ question.get_question_type_display }}</span>
+                        {% if question.is_required %}
+                          <span class="badge bg-danger ms-1">{% trans_tag "Required" %}</span>
+                        {% endif %}
+                        {% if question.allow_attachments %}
+                          <span class="badge bg-info ms-1 attachment-allowed">{% trans_tag "Allows attachments" %}</span>
+                        {% endif %}
+                        {% if question.in_question_bank %}
+                          <span class="badge bg-success ms-1">{% trans_tag "In bank" %}</span>
+                        {% endif %}
+                      </div>
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-success save-to-bank-btn custom-tooltip" data-id="{{ question.id }}" data-tooltip="{% trans_tag 'Save to bank' %}" {% if question.in_question_bank %}disabled{% endif %}>
+                          <i class="bi bi-archive"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn custom-tooltip" data-id="{{ question.id }}" data-tooltip="{% trans_tag 'Edit question' %}">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-question-btn custom-tooltip" data-id="{{ question.id }}" data-tooltip="{% trans_tag 'Delete question' %}">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="card-body">
+                      <h5 class="card-title">{{ question.text }}</h5>
+                      {% if question.help_text %}
+                        <p class="text-muted small">{{ question.help_text }}</p>
+                      {% endif %}
+                      
+                      {% if question.image %}
+                        <div class="mt-2 mb-3">
+                          <img src="{{ question.image.url }}" alt="{% trans_tag 'Question image' %}" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                      {% endif %}
+                      
+                      <!-- Opciones para preguntas de selección -->
+                      {% if question.question_type in 'multiple_choice,checkbox,dropdown' %}
+                        <div class="mt-3">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">{% trans_tag "Options:" %}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary add-option-btn custom-tooltip" data-question-id="{{ question.id }}" data-tooltip="{% trans_tag 'Add option' %}">
+                              <i class="bi bi-plus-lg"></i> {% trans_tag "Add option" %}
+                            </button>
+                          </div>
+                          
+                          <div class="options-list" data-question-id="{{ question.id }}">
+                            {% for option in question.options.all %}
+                              <div class="option-item d-flex align-items-center" data-id="{{ option.id }}">
+                                <div class="option-handle me-2"><i class="bi bi-grip-vertical"></i></div>
+                                <div class="option-text flex-grow-1">{{ option.text }}</div>
+                                <div class="option-actions">
+                                  <button type="button" class="btn btn-sm btn-outline-primary edit-option-btn custom-tooltip" data-id="{{ option.id }}" data-tooltip="{% trans_tag 'Edit option' %}">
+                                    <i class="bi bi-pencil"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-outline-danger delete-option-btn custom-tooltip" data-id="{{ option.id }}" data-tooltip="{% trans_tag 'Delete option' %}">
+                                    <i class="bi bi-trash"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            {% empty %}
+                              <div class="text-muted text-center py-3">
+                                {% trans_tag "No options defined. Add options for this question." %}
+                              </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      {% endif %}
+                      
+                      <!-- Configuración específica para escala lineal -->
+                      {% if question.question_type == 'linear_scale' %}
+                        <div class="mt-3 p-3 bg-light rounded">
+                          <h6 class="mb-2">{% trans_tag "Scale configuration:" %}</h6>
+                          <div class="row">
+                            <div class="col-6">
+                              <p class="mb-1"><strong>{% trans_tag "Minimum value:" %}</strong> {{ question.min_value|default:"1" }}</p>
+                              <p class="mb-1"><strong>{% trans_tag "Minimum label:" %}</strong> {{ question.min_label|default:"" }}</p>
+                            </div>
+                            <div class="col-6">
+                              <p class="mb-1"><strong>{% trans_tag "Maximum value:" %}</strong> {{ question.max_value|default:"5" }}</p>
+                              <p class="mb-1"><strong>{% trans_tag "Maximum label:" %}</strong> {{ question.max_label|default:"" }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <!-- Estado vacío -->
+                <div class="empty-questions">
+                  <i class="bi bi-question-circle"></i>
+                  <h3>{% trans_tag "No questions in this form" %}</h3>
+                  <p class="text-muted">{% trans_tag "Click on 'Add Question' to start creating your form or drag questions from the bank." %}</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Añadir overlay para dispositivos móviles -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Incluir los modales existentes sin cambios -->
+  <!-- Modal para añadir preguntas -->
+  <div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addQuestionModalLabel">{% trans_tag "Add New Question" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addQuestionForm" method="post" action="{% url 'gform_add_question' gform.id %}" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label for="id_question_type" class="form-label">{% trans_tag "Question type" %} *</label>
+            <select name="question_type" id="id_question_type" class="form-select" required>
+              <option value="">{% trans_tag "Select a type" %}</option>
+              <option value="short_text">{% trans_tag "Short Text" %}</option>
+              <option value="paragraph">{% trans_tag "Paragraph" %}</option>
+              <option value="multiple_choice">{% trans_tag "Multiple Choice" %}</option>
+              <option value="checkbox">{% trans_tag "Checkboxes" %}</option>
+              <option value="dropdown">{% trans_tag "Dropdown" %}</option>
+              <option value="linear_scale">{% trans_tag "Linear Scale" %}</option>
+              <option value="date">{% trans_tag "Date" %}</option>
+              <option value="time">{% trans_tag "Time" %}</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="id_text" class="form-label">{% trans_tag "Question text" %} *</label>
+            <input type="text" name="text" id="id_text" class="form-control" placeholder="{% trans_tag 'Write your question' %}" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="id_help_text" class="form-label">{% trans_tag "Help text (optional)" %}</label>
+            <input type="text" name="help_text" id="id_help_text" class="form-control" placeholder="{% trans_tag 'Help text for the user' %}">
+          </div>
+          
+          <div class="mb-3">
+            <label for="id_image" class="form-label">{% trans_tag "Image (optional)" %}</label>
+            <input type="file" name="image" id="id_image" class="form-control" accept="image/*">
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="is_required" id="id_is_required" class="form-check-input">
+            <label for="id_is_required" class="form-check-label">{% trans_tag "Required" %}</label>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="allow_attachments" id="id_allow_attachments" class="form-check-input">
+            <label for="id_allow_attachments" class="form-check-label">{% trans_tag "Allow file attachments" %}</label>
+            <div class="form-text">{% trans_tag "If checked, users will be able to attach files or URLs to this question." %}</div>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="in_question_bank" id="id_in_question_bank" class="form-check-input">
+            <label for="id_in_question_bank" class="form-check-label">{% trans_tag "Save to question bank" %}</label>
+            <div class="form-text">{% trans_tag "If checked, this question will be saved to your question bank for reuse in other forms." %}</div>
+          </div>
+          
+          <!-- Campos específicos para escala lineal -->
+          <div id="linearScaleFields" class="d-none">
+            <hr>
+            <h6>{% trans_tag "Linear scale configuration" %}</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="id_min_value" class="form-label">{% trans_tag "Minimum value" %}</label>
+                  <input type="number" name="min_value" id="id_min_value" class="form-control" value="1" min="0" max="10">
+                </div>
+                <div class="mb-3">
+                  <label for="id_min_label" class="form-label">{% trans_tag "Label for minimum value (optional)" %}</label>
+                  <input type="text" name="min_label" id="id_min_label" class="form-control" placeholder="{% trans_tag 'Ex: Very dissatisfied' %}" value="{% trans_tag 'Very dissatisfied' %}">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="id_max_value" class="form-label">{% trans_tag "Maximum value" %}</label>
+                  <input type="number" name="max_value" id="id_max_value" class="form-control" value="5" min="1" max="10">
+                </div>
+                <div class="mb-3">
+                  <label for="id_max_label" class="form-label">{% trans_tag "Label for maximum value (optional)" %}</label>
+                  <input type="text" name="max_label" id="id_max_label" class="form-control" placeholder="{% trans_tag 'Ex: Very satisfied' %}" value="{% trans_tag 'Very satisfied' %}">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Vista previa de la escala -->
+            <div class="mt-3">
+              <h6 class="mb-2">{% trans_tag "Preview:" %}</h6>
+              <div class="linear-scale-preview">
+                <div class="scale-preview-options">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                </div>
+                <div class="scale-preview-labels">
+                  <span id="preview-min-label">{% trans_tag "Very dissatisfied" %}</span>
+                  <span id="preview-max-label">{% trans_tag "Very satisfied" %}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-primary" id="saveQuestionBtn">{% trans_tag "Save Question" %}</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal para editar preguntas -->
+  <div class="modal fade" id="editQuestionModal" tabindex="-1" aria-labelledby="editQuestionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editQuestionModalLabel">{% trans_tag "Edit Question" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editQuestionForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label for="edit_question_type" class="form-label">{% trans_tag "Question type" %} *</label>
+            <select name="question_type" id="edit_question_type" class="form-select" required>
+              <option value="short_text">{% trans_tag "Short Text" %}</option>
+              <option value="paragraph">{% trans_tag "Paragraph" %}</option>
+              <option value="multiple_choice">{% trans_tag "Multiple Choice" %}</option>
+              <option value="checkbox">{% trans_tag "Checkboxes" %}</option>
+              <option value="dropdown">{% trans_tag "Dropdown" %}</option>
+              <option value="linear_scale">{% trans_tag "Linear Scale" %}</option>
+              <option value="date">{% trans_tag "Date" %}</option>
+              <option value="time">{% trans_tag "Time" %}</option>
+            </select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="edit_text" class="form-label">{% trans_tag "Question text" %} *</label>
+            <input type="text" name="text" id="edit_text" class="form-control" placeholder="{% trans_tag 'Write your question' %}" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="edit_help_text" class="form-label">{% trans_tag "Help text (optional)" %}</label>
+            <input type="text" name="help_text" id="edit_help_text" class="form-control" placeholder="{% trans_tag 'Help text for the user' %}">
+          </div>
+          
+          <div class="mb-3">
+            <label for="edit_image" class="form-label">{% trans_tag "Image (optional)" %}</label>
+            <input type="file" name="image" id="edit_image" class="form-control" accept="image/*">
+            <div id="current_image_preview" class="mt-2"></div>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="is_required" id="edit_is_required" class="form-check-input">
+            <label for="edit_is_required" class="form-check-label">{% trans_tag "Required" %}</label>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="allow_attachments" id="edit_allow_attachments" class="form-check-input">
+            <label for="edit_allow_attachments" class="form-check-label">{% trans_tag "Allow file attachments" %}</label>
+            <div class="form-text">{% trans_tag "If checked, users will be able to attach files or URLs to this question." %}</div>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" name="in_question_bank" id="edit_in_question_bank" class="form-check-input">
+            <label for="edit_in_question_bank" class="form-check-label">{% trans_tag "Save to question bank" %}</label>
+            <div class="form-text">{% trans_tag "If checked, this question will be saved to your question bank for reuse in other forms." %}</div>
+          </div>
+          
+          <!-- Campos específicos para escala lineal -->
+          <div id="editLinearScaleFields" class="d-none">
+            <hr>
+            <h6>{% trans_tag "Linear scale configuration" %}</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="edit_min_value" class="form-label">{% trans_tag "Minimum value" %}</label>
+                  <input type="number" name="min_value" id="edit_min_value" class="form-control" value="1" min="0" max="10">
+                </div>
+                <div class="mb-3">
+                  <label for="edit_min_label" class="form-label">{% trans_tag "Label for minimum value (optional)" %}</label>
+                  <input type="text" name="min_label" id="edit_min_label" class="form-control" placeholder="{% trans_tag 'Ex: Very dissatisfied' %}" value="{% trans_tag 'Very dissatisfied' %}">
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="edit_max_value" class="form-label">{% trans_tag "Maximum value" %}</label>
+                  <input type="number" name="max_value" id="edit_max_value" class="form-control" value="5" min="1" max="10">
+                </div>
+                <div class="mb-3">
+                  <label for="edit_max_label" class="form-label">{% trans_tag "Label for maximum value (optional)" %}</label>
+                  <input type="text" name="max_label" id="edit_max_label" class="form-control" placeholder="{% trans_tag 'Ex: Very satisfied' %}" value="{% trans_tag 'Very satisfied' %}">
+                </div>
+              </div>
+            </div>
+          
+            <!-- Vista previa de la escala -->
+            <div class="mt-3">
+              <h6 class="mb-2">{% trans_tag "Preview:" %}</h6>
+              <div class="linear-scale-preview">
+                <div class="scale-preview-options">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                </div>
+                <div class="scale-preview-labels">
+                  <span id="edit-preview-min-label">{% trans_tag "Very dissatisfied" %}</span>
+                  <span id="edit-preview-max-label">{% trans_tag "Very satisfied" %}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-primary" id="updateQuestionBtn">{% trans_tag "Update Question" %}</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal para añadir opciones -->
+  <div class="modal fade" id="addOptionModal" tabindex="-1" aria-labelledby="addOptionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addOptionModalLabel">{% trans_tag "Add Option" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addOptionForm" method="post">
+          {% csrf_token %}
+          <input type="hidden" id="option_question_id" name="question_id">
+          
+          <div class="mb-3">
+            <label for="option_text" class="form-label">{% trans_tag "Option text" %} *</label>
+            <input type="text" name="text" id="option_text" class="form-control" placeholder="{% trans_tag 'Write the option text' %}" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-primary" id="saveOptionBtn">{% trans_tag "Save Option" %}</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal para editar opciones -->
+  <div class="modal fade" id="editOptionModal" tabindex="-1" aria-labelledby="editOptionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editOptionModalLabel">{% trans_tag "Edit Option" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editOptionForm" method="post">
+          {% csrf_token %}
+          <input type="hidden" id="edit_option_id" name="option_id">
+          
+          <div class="mb-3">
+            <label for="edit_option_text" class="form-label">{% trans_tag "Option text" %} *</label>
+            <input type="text" name="text" id="edit_option_text" class="form-control" placeholder="{% trans_tag 'Write the option text' %}" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-primary" id="updateOptionBtn">{% trans_tag "Update Option" %}</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">{% trans_tag "Confirm deletion" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmText">{% trans_tag "Are you sure you want to delete this item?" %}</p>
+        <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> {% trans_tag "This action cannot be undone." %}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">{% trans_tag "Delete" %}</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Toast para notificaciones -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <i class="bi bi-info-circle me-2 text-primary"></i>
+      <strong class="me-auto">{% trans_tag "Notification" %}</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toastMessage">
+      {% trans_tag "Notification message" %}
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+<script src="{% static 'js/question_bank.js' %}?v={% now 'U' %}"></script>
+<script src="{% static 'js/sidebar_toggle.js' %}?v={% now 'U' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Definir variables globales
+  window.bootstrap = window.bootstrap || {}
+  window.Sortable = window.Sortable || {}
+
+  // Función para obtener el valor de una cookie (para CSRF)
+  function getCookie(name) {
+    let cookieValue = null
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";")
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim()
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+          break
+        }
+      }
+    }
+    return cookieValue
+  }
+
+  // Función para mostrar notificaciones (solo para errores críticos, no para limpiezas)
+  function showToast(message, type = "info") {
+    // Verificar si existe un contenedor de toast
+    const toastMessage = document.getElementById("toastMessage")
+    if (toastMessage) {
+      toastMessage.textContent = message
+      
+      const toast = new bootstrap.Toast(document.getElementById("notificationToast"))
+      toast.show()
+    } else {
+      // Fallback si no existe el toast en el DOM
+      console.log(`${type.toUpperCase()}: ${message}`)
+      alert(message)
+    }
+  }
+
+  // Mostrar/ocultar campos específicos según el tipo de pregunta
+  const questionType = document.getElementById("id_question_type")
+  const linearScaleFields = document.getElementById("linearScaleFields")
+
+  if (questionType) {
+    questionType.addEventListener("change", function() {
+      if (this.value === "linear_scale") {
+        linearScaleFields.classList.remove("d-none")
+        updateScalePreview()
+      } else {
+        linearScaleFields.classList.add("d-none")
+      }
+    })
+  }
+
+  // Función para inicializar Sortable (drag and drop)
+  function initSortable() {
+    const questionsList = document.getElementById("questionsList")
+    const questionBank = document.getElementById("questionBank")
+
+    if (questionsList && questionBank && typeof Sortable === "function") {
+      // Sortable para la lista de preguntas
+      new Sortable(questionsList, {
+        animation: 150,
+        handle: ".card-header",
+        group: {
+          name: "questions",
+          put: true,
+        },
+        onAdd: (evt) => {
+          const item = evt.item
+          const questionId = item.dataset.id
+
+          // Eliminar el elemento clonado y añadir la pregunta desde el banco
+          item.remove()
+
+          // Obtener el ID del formulario
+          const formId =
+            document.querySelector('input[name="form_id"]')?.value ||
+            window.location.pathname.split("/").filter(Boolean)[1]
+
+          // Llamar a la función para añadir la pregunta desde el banco
+          addQuestionFromBank(formId, questionId)
+        },
+        onEnd: () => {
+          // Obtener el nuevo orden
+          const questions = document.querySelectorAll(".question-card")
+          const questionIds = Array.from(questions).map((q) => q.dataset.id)
+
+          // Enviar el nuevo orden al servidor
+          updateQuestionsOrder(questionIds)
+        },
+      })
+
+      // Sortable para el banco de preguntas
+      new Sortable(questionBank, {
+        animation: 150,
+        group: {
+          name: "questions",
+          pull: "clone",
+          put: false,
+        },
+        sort: false,
+        onClone: (evt) => {
+          const clone = evt.clone
+          clone.classList.add("dragging")
+        },
+      })
+    }
+  }
+
+  // Sortable para las listas de opciones
+  document.querySelectorAll(".options-list").forEach((container) => {
+    if (window.Sortable) {
+      new Sortable(container, {
+        animation: 150,
+        handle: ".option-handle",
+        onEnd: (evt) => {
+          // Obtener el ID de la pregunta
+          const questionId = evt.target.dataset.questionId
+
+          // Obtener el nuevo orden
+          const options = evt.target.querySelectorAll(".option-item")
+          const optionIds = Array.from(options).map((o) => o.dataset.id)
+
+          // Enviar el nuevo orden al servidor
+          updateOptionsOrder(questionId, optionIds)
+        },
+      })
+    }
+  })
+
+  // Función para añadir una pregunta desde el banco
+  function addQuestionFromBank(formId, questionId) {
+    console.log(`Añadiendo pregunta ${questionId} al formulario ${formId}`)
+
+    // Crear un token CSRF
+    const csrftoken = getCookie("csrftoken")
+
+    // Crear un formulario para enviar la solicitud POST
+    const form = document.createElement("form")
+    form.method = "POST"
+    form.action = `/forms/form/${formId}/add-from-bank/${questionId}/`
+
+    // Añadir CSRF token
+    const csrfInput = document.createElement("input")
+    csrfInput.type = "hidden"
+    csrfInput.name = "csrfmiddlewaretoken"
+    csrfInput.value = csrftoken
+    form.appendChild(csrfInput)
+
+    // Añadir el formulario al DOM
+    document.body.appendChild(form)
+
+    // Enviar el formulario usando fetch
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrftoken,
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: new FormData(form),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((data) => {
+        // Eliminar el formulario temporal
+        document.body.removeChild(form)
+
+        if (data.success) {
+          // Recargar la página para mostrar la nueva pregunta
+          location.reload()
+        } else {
+          showToast("Error: " + (data.error || "No se pudo añadir la pregunta"), "danger")
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        showToast("Error al añadir la pregunta", "danger")
+        document.body.removeChild(form)
+      })
+  }
+
+  // Función para editar una pregunta del banco
+  function editBankQuestion(questionId) {
+    console.log("Editando pregunta del banco con ID:", questionId)
+
+    // Obtener los datos de la pregunta
+    fetch(`/forms/question-bank/${questionId}/`, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.success) {
+          const question = data.question
+
+          // Llenar el formulario de edición
+          const editModal = document.getElementById("editQuestionModal")
+          if (editModal) {
+            const form = editModal.querySelector("form")
+            form.action = `/forms/question-bank/${questionId}/edit/`
+
+            // Llenar los campos del formulario
+            const textField = form.querySelector("#edit_text")
+            if (textField) textField.value = question.text
+
+            const helpTextField = form.querySelector("#edit_help_text")
+            if (helpTextField) helpTextField.value = question.help_text || ""
+
+            const isRequiredField = form.querySelector("#edit_is_required")
+            if (isRequiredField) isRequiredField.checked = question.is_required
+
+            const allowAttachmentsField = form.querySelector("#edit_allow_attachments")
+            if (allowAttachmentsField) allowAttachmentsField.checked = question.allow_attachments
+
+            // Seleccionar el tipo de pregunta
+            const typeSelect = form.querySelector("#edit_question_type")
+            if (typeSelect) {
+              for (let i = 0; i < typeSelect.options.length; i++) {
+                if (typeSelect.options[i].value === question.question_type) {
+                  typeSelect.selectedIndex = i
+                  break
+                }
+              }
+
+              // Disparar el evento change para mostrar/ocultar campos específicos
+              const event = new Event("change")
+              typeSelect.dispatchEvent(event)
+            }
+
+            // Mostrar campos específicos según el tipo
+            const linearScaleFields = form.querySelector("#editLinearScaleFields")
+            if (question.question_type === "linear_scale" && linearScaleFields) {
+              linearScaleFields.classList.remove("d-none")
+
+              // Establecer valores de escala
+              const minValueField = form.querySelector("#edit_min_value")
+              if (minValueField) minValueField.value = question.min_value || 1
+
+              const maxValueField = form.querySelector("#edit_max_value")
+              if (maxValueField) maxValueField.value = question.max_value || 5
+
+              const minLabelField = form.querySelector("#edit_min_label")
+              if (minLabelField) minLabelField.value = question.min_label || ""
+
+              const maxLabelField = form.querySelector("#edit_max_label")
+              if (maxLabelField) maxLabelField.value = question.max_label || ""
+
+              // Actualizar vista previa si existe la función
+              if (typeof window.updateEditScalePreview === "function") {
+                window.updateEditScalePreview()
+              }
+            } else if (linearScaleFields) {
+              linearScaleFields.classList.add("d-none")
+            }
+
+            // Configurar el botón de actualización
+            const updateBtn = document.getElementById("updateQuestionBtn")
+            if (updateBtn) {
+              // Eliminar event listeners anteriores
+              const newUpdateBtn = updateBtn.cloneNode(true)
+              updateBtn.parentNode.replaceChild(newUpdateBtn, updateBtn)
+
+              // Añadir nuevo event listener
+              newUpdateBtn.addEventListener("click", () => {
+                if (form.checkValidity()) {
+                  // Enviar el formulario usando fetch para evitar recargar la página
+                  const formData = new FormData(form)
+                  const csrftoken = getCookie("csrftoken")
+
+                  fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                      "X-CSRFToken": csrftoken,
+                      "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: formData,
+                  })
+                    .then((response) => response.json())
+                    .then((result) => {
+                      // Cerrar el modal
+                      const modal = bootstrap.Modal.getInstance(editModal)
+                      if (modal) modal.hide()
+
+                      if (result.success) {
+                        showToast("Pregunta actualizada correctamente", "success")
+
+                        // Actualizar el banco de preguntas
+                        updateQuestionBank()
+                      } else {
+                        showToast("Error al actualizar la pregunta: " + (result.error || "Error desconocido"), "danger")
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("Error:", error)
+                      showToast("Error al actualizar la pregunta", "danger")
+                    })
+                } else {
+                  form.reportValidity()
+                }
+              })
+            }
+
+            // Mostrar el modal
+            if (bootstrap && bootstrap.Modal) {
+              const modal = new bootstrap.Modal(editModal)
+              modal.show()
+            } else {
+              // Fallback si bootstrap no está disponible
+              editModal.style.display = "block"
+            }
+          } else {
+            showToast("No se encontró el modal para editar la pregunta", "danger")
+          }
+        } else {
+          showToast("Error al cargar los datos de la pregunta: " + (data.error || "Error desconocido"), "danger")
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        showToast("Error al cargar los datos de la pregunta", "danger")
+      })
+  }
+
+  // Función para eliminar una pregunta del banco
+  function deleteBankQuestion(questionId) {
+    console.log("Ejecutando deleteBankQuestion para ID:", questionId)
+
+    // Crear un token CSRF
+    const csrftoken = getCookie("csrftoken")
+
+    // Enviar la solicitud para eliminar la pregunta directamente
+    // sin mostrar otro modal de confirmación (ya que ya se confirmó)
+    fetch(`/forms/question-bank/${questionId}/delete/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrftoken,
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Limpiar cualquier backdrop modal que pueda haber quedado
+        removeModalBackdrop()
+
+        if (data.success) {
+          // Eliminar el elemento del DOM sin recargar la página
+          const questionElement = document.querySelector(`.bank-question-item[data-id="${questionId}"]`)
+          if (questionElement) {
+            // Animación de desvanecimiento antes de eliminar
+            questionElement.style.transition = "opacity 0.3s ease"
+            questionElement.style.opacity = "0"
+
+            setTimeout(() => {
+              questionElement.remove()
+
+              // Si no quedan preguntas, mostrar mensaje
+              const bankContainer = document.getElementById("questionBank")
+              if (bankContainer && !bankContainer.querySelector(".bank-question-item")) {
+                bankContainer.innerHTML = `
+                <div class="bank-empty">
+                  <i class="bi bi-archive"></i>
+                  <h5>No hay preguntas guardadas</h5>
+                  <p>Guarda preguntas en el banco para reutilizarlas en otros formularios.</p>
+                </div>
+              `
+              }
+            }, 300)
+          }
+
+          // También eliminar las preguntas correspondientes del formulario
+          const formQuestions = document.querySelectorAll(".form-question, .question-card")
+          formQuestions.forEach((question) => {
+            // Buscar si esta pregunta tiene un badge "En banco"
+            const bankBadge = question.querySelector('.badge.bg-success, .badge:contains("En banco")')
+            if (bankBadge) {
+              // Verificar si es la misma pregunta (comparando texto o ID)
+              const questionText = question.querySelector(".card-title, .bank-question-text")?.textContent.trim()
+              const bankQuestionText = document
+                .querySelector(`.bank-question-item[data-id="${questionId}"] .bank-question-text`)
+                ?.textContent.trim()
+
+              if (questionText === bankQuestionText) {
+                // Eliminar el badge "En banco"
+                bankBadge.remove()
+
+                // Habilitar el botón "Guardar en banco" si existe
+                const saveBtn = question.querySelector(".save-to-bank-btn")
+                if (saveBtn) {
+                  saveBtn.disabled = false
+                }
+              }
+            }
+          })
+
+          // Actualizar la lista de preguntas del formulario
+          const formId = window.location.pathname.split("/").filter(Boolean)[1]
+          fetchAndUpdateQuestions(formId)
+
+          // Limpiar duplicados en el servidor
+          setTimeout(() => {
+            cleanupDuplicatesFromServer(false)
+          }, 500)
+
+          // Mostrar notificación
+          showToast(data.message || "Pregunta eliminada correctamente del banco", "success")
+        } else {
+          showToast("Error: " + (data.error || "No se pudo eliminar la pregunta"), "danger")
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        showToast("Error al eliminar la pregunta", "danger")
+
+        // Limpiar cualquier backdrop modal que pueda haber quedado
+        removeModalBackdrop()
+      })
+  }
+
+  // Función para guardar una pregunta en el banco
+  function saveQuestionToBank(questionId) {
+    console.log("Guardando pregunta en el banco con ID:", questionId)
+
+    // Crear un token CSRF
+    const csrftoken = getCookie("csrftoken")
+
+    // Enviar la solicitud para guardar la pregunta en el banco
+    fetch(`/forms/question/${questionId}/save-to-bank/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrftoken,
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((data) => {
+        if (data.success) {
+          // Actualizar la UI - Añadir badge visual sin deshabilitar el botón
+          const btn = document.querySelector(`.save-to-bank-btn[data-id="${questionId}"]`)
+          if (btn) {
+            // Ya no deshabilitamos el botón para permitir guardar múltiples veces
+            // btn.disabled = true;
+
+            // Añadir badge si no existe
+            const questionCard = document.querySelector(`.question-card[data-id="${questionId}"]`)
+            if (questionCard) {
+              const badgeContainer = questionCard.querySelector(".card-header div:first-child")
+              if (badgeContainer && !questionCard.querySelector(".badge.bg-success")) {
+                const badge = document.createElement("span")
+                badge.className = "badge bg-success ms-1"
+                badge.textContent = "En banco"
+                badgeContainer.appendChild(badge)
+              }
+            }
+          }
+
+          // Mostrar notificación
+          showToast("Pregunta guardada en el banco correctamente", "success")
+
+          // Actualizar el banco de preguntas
+          updateQuestionBank()
+        } else {
+          showToast("Error: " + (data.error || "No se pudo guardar la pregunta en el banco"), "danger")
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        showToast("Error al guardar la pregunta en el banco", "danger")
+      })
+  }
+
+  // Modificar la función para guardar preguntas en el banco
+  document.querySelectorAll(".save-to-bank-btn").forEach((btn) => {
+    // Eliminar event listeners anteriores
+    const newBtn = btn.cloneNode(true)
+    if (btn.parentNode) {
+      btn.parentNode.replaceChild(newBtn, btn)
+    }
+
+    // Añadir nuevo event listener
+    newBtn.addEventListener("click", function() {
+      const questionId = this.dataset.id
+      saveQuestionToBank(questionId)
+    })
+  })
+
+  // Función para actualizar el banco de preguntas
+  function updateQuestionBank() {
+    const questionBankContainer = document.getElementById("questionBank")
+    if (!questionBankContainer) return
+
+    // Mostrar indicador de carga
+    questionBankContainer.innerHTML =
+      '<div class="text-center p-3"><i class="bi bi-arrow-repeat spinner"></i> Actualizando banco de preguntas...</div>'
+
+    // Obtener las preguntas actualizadas
+    fetch("/forms/question-bank/json/", {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      credentials: "same-origin", // Ensure cookies are sent with the request
+    })
+      .then((response) => {
+        // Verificar si la respuesta es válida
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`)
+        }
+        // Verificar el tipo de contenido para detectar HTML en lugar de JSON
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("text/html")) {
+          throw new Error("El servidor devolvió HTML en lugar de JSON. Posible error 500 en el servidor.")
+        }
+        return response.json()
+      })
+      .then((data) => {
+        // Verificar si data es null o undefined
+        if (!data) {
+          throw new Error("Datos vacíos recibidos del servidor")
+        }
+
+        if (data.success && data.bank_questions && data.bank_questions.length > 0) {
+          // Limpiar el contenedor
+          questionBankContainer.innerHTML = ""
+
+          // Crear un Map para rastrear IDs ya añadidos y evitar duplicados
+          const addedIds = new Map()
+          const addedContent = new Map() // Para detectar duplicados por contenido
+
+          // Ordenar las preguntas por fecha de creación (más recientes primero)
+          const sortedQuestions = [...data.bank_questions].sort((a, b) => {
+            // Si tienen created_at, usar eso
+            if (a.created_at && b.created_at) {
+              return new Date(b.created_at) - new Date(a.created_at)
+            }
+            // Si no, mantener el orden original
+            return 0
+          })
+
+          // Añadir cada pregunta al banco (evitando duplicados)
+          sortedQuestions.forEach((question) => {
+            // Crear clave de contenido
+            const contentKey = `${question.text}|${question.question_type}`
+
+            // Verificar si esta pregunta ya ha sido añadida por ID o contenido
+            if (addedIds.has(question.id) || addedContent.has(contentKey)) {
+              console.log(`Pregunta duplicada detectada en el frontend: ${question.id} - ${contentKey}`)
+              return // Saltar esta pregunta
+            }
+
+            // Registrar esta ID y contenido como añadidos
+            addedIds.set(question.id, true)
+            addedContent.set(contentKey, true)
+
+            const questionItem = document.createElement("div")
+            questionItem.className = "bank-question-item"
+            questionItem.dataset.id = question.id
+            questionItem.dataset.type = question.question_type
+            questionItem.dataset.text = question.text.toLowerCase().replace(/\s+/g, "-") // Para comparación de duplicados
+            questionItem.dataset.hash = question.hash || "" // Para comparación de duplicados
+            questionItem.draggable = true
+
+            questionItem.innerHTML = `
+              <span class="bank-question-type">${question.question_type_display}</span>
+              <div class="bank-question-text">${question.text}</div>
+              <div class="bank-question-meta">
+                <div class="bank-question-usage">
+                  <i class="bi bi-bar-chart"></i> Usado ${question.usage_count} veces
+                </div>
+              </div>
+              <div class="bank-question-actions">
+                <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="${question.id}" title="Añadir al formulario">
+                  <i class="bi bi-plus"></i>
+                </button>
+                <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="${question.id}" title="Editar pregunta">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="${question.id}" title="Eliminar pregunta">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            `
+
+            questionBankContainer.appendChild(questionItem)
+          })
+
+          // Reinicializar los event listeners
+          initBankQuestionButtons()
+
+          // Reinicializar Sortable si está disponible
+          if (typeof Sortable === "function") {
+            initSortable()
+          }
+
+          console.log(`Banco de preguntas actualizado: ${addedIds.size} preguntas únicas cargadas`)
+
+          // Ejecutar limpieza de duplicados en el DOM después de cargar
+          setTimeout(removeDuplicatesFromDOM, 100)
+        } else if (data.bank_questions && data.bank_questions.length === 0) {
+          // Mostrar mensaje si no hay preguntas
+          questionBankContainer.innerHTML = `
+            <div class="bank-empty">
+              <i class="bi bi-archive"></i>
+              <h5>No hay preguntas guardadas</h5>
+              <p>Guarda preguntas en el banco para reutilizarlas en otros formularios.</p>
+            </div>
+          `
+        } else {
+          throw new Error("Formato de datos inválido o no hay preguntas disponibles")
+        }
+      })
+      .catch((error) => {
+        console.error("Error al actualizar el banco de preguntas:", error)
+        // Display a more detailed error message
+        questionBankContainer.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Error al cargar las preguntas del banco: ${error.message}
+            <div class="mt-2">
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="updateQuestionBank()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reintentar
+              </button>
+            </div>
+          </div>
+        `
+      })
+  }
+
+  // Función para eliminar duplicados en el DOM
+  function removeDuplicatesFromDOM() {
+    // Verificar duplicados en el banco de preguntas
+    const bankItems = document.querySelectorAll(".bank-question-item")
+    const ids = new Map() // Usamos Map para guardar el primer elemento de cada ID
+    const textMap = new Map() // Mapa adicional para detectar duplicados por texto
+    const duplicates = []
+
+    bankItems.forEach((item) => {
+      const id = item.dataset.id
+      const text = item.querySelector(".bank-question-text")?.textContent.trim()
+      const type = item.dataset.type
+      const contentKey = `${text}|${type}`
+
+      // Verificar duplicados por ID
+      if (ids.has(id)) {
+        // Este es un duplicado por ID
+        duplicates.push(item)
+        console.log(`Duplicado por ID: ${id}`)
+      }
+      // Verificar duplicados por contenido
+      else if (text && textMap.has(contentKey)) {
+        // Este es un duplicado por contenido
+        duplicates.push(item)
+        console.log(`Duplicado por contenido: ${contentKey}`)
+      } else {
+        // Este es el primer elemento con este ID y contenido
+        ids.set(id, item)
+        if (text) {
+          textMap.set(contentKey, item)
+        }
+      }
+    })
+
+    // Eliminar elementos duplicados
+    duplicates.forEach((item) => {
+      item.remove()
+    })
+
+    if (duplicates.length > 0) {
+      console.log(`Eliminados ${duplicates.length} elementos duplicados del DOM`)
+    }
+
+    return duplicates.length
+  }
+
+  // Función para limpiar duplicados desde el servidor
+  function cleanupDuplicatesFromServer(showNotification = false) {
+    // Crear un token CSRF
+    const csrftoken = getCookie("csrftoken")
+
+    // Enviar solicitud para limpiar duplicados
+    fetch("/forms/question-bank/clean/", {
+      method: "POST",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "X-CSRFToken": csrftoken,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          if (showNotification) {
+            showToast(data.message || "Duplicados eliminados correctamente", "success")
+          }
+
+          if (data.duplicates_removed > 0) {
+            console.log(
+              `Limpieza en servidor: ${data.duplicates_removed} eliminados, ${data.questions_kept} mantenidos`,
+            )
+            // Actualizar el banco de preguntas solo si se eliminaron duplicados
+            updateQuestionBank()
+          }
+        } else {
+          console.error("Error al limpiar duplicados:", data.error)
+        }
+      })
+      .catch((error) => {
+        console.error("Error al limpiar duplicados:", error)
+      })
+  }
+
+  // Nueva función para añadir una pregunta a la UI sin recargar
+  function addQuestionToUI(question) {
+    const questionsList = document.getElementById("questionsList")
+    if (!questionsList) return
+
+    // Eliminar el mensaje de "no hay preguntas" si existe
+    const emptyMessage = questionsList.querySelector(".empty-questions")
+    if (emptyMessage) {
+      emptyMessage.remove()
+    }
+
+    // Crear el elemento de la pregunta
+    const questionCard = document.createElement("div")
+    questionCard.className = "question-card"
+    questionCard.dataset.id = question.id
+
+    // Construir el HTML de la pregunta
+    questionCard.innerHTML = `
+      <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+              <span class="badge bg-info">${question.question_type_display}</span>
+              ${question.is_required ? '<span class="badge bg-danger ms-1">Obligatorio</span>' : ""}
+              ${question.allow_attachments ? '<span class="badge bg-info ms-1 attachment-allowed">Permite adjuntos</span>' : ""}
+              ${question.in_question_bank ? '<span class="badge bg-success ms-1">En banco</span>' : ""}
+          </div>
+          <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-success save-to-bank-btn custom-tooltip" data-id="${question.id}" data-tooltip="Guardar en banco" ${question.in_question_bank ? "disabled" : ""}>
+                  <i class="bi bi-archive"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn custom-tooltip" data-id="${question.id}" data-tooltip="Editar pregunta">
+                  <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger delete-question-btn custom-tooltip" data-id="${question.id}" data-tooltip="Eliminar pregunta">
+                  <i class="bi bi-trash"></i>
+              </button>
+          </div>
+      </div>
+      <div class="card-body">
+          <h5 class="card-title">${question.text}</h5>
+          ${question.help_text ? `<p class="text-muted small">${question.help_text}</p>` : ""}
+          
+          ${
+            question.image
+              ? `
+          <div class="mt-2 mb-3">
+              <img src="${question.image}" alt="Imagen de la pregunta" class="img-fluid rounded" style="max-height: 200px;">
+          </div>
+          `
+              : ""
+          }
+      </div>
+    `
+
+    // Añadir la pregunta al principio de la lista
+    questionsList.prepend(questionCard)
+
+    // Inicializar los event listeners para los botones de la nueva pregunta
+    initQuestionCardButtons(questionCard)
+  }
+
+  // Nueva función para inicializar los botones de una tarjeta de pregunta
+  function initQuestionCardButtons(questionCard) {
+    // Botón de guardar en banco
+    const saveBtn = questionCard.querySelector(".save-to-bank-btn")
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function() {
+        const questionId = this.dataset.id
+        saveQuestionToBank(questionId)
+      })
+    }
+
+    // Botón de editar
+    const editBtn = questionCard.querySelector(".edit-question-btn")
+    if (editBtn) {
+      editBtn.addEventListener("click", function() {
+        const questionId = this.dataset.id
+        // Aquí iría el código para editar la pregunta
+        // Normalmente abriría un modal con los datos de la pregunta
+      })
+    }
+
+    // Botón de eliminar
+    const deleteBtn = questionCard.querySelector(".delete-question-btn")
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", function() {
+        const questionId = this.dataset.id
+        // Configurar el modal de confirmación para eliminar
+        const deleteConfirmModal = document.getElementById("deleteConfirmModal")
+        const deleteConfirmText = document.getElementById("deleteConfirmText")
+        if (deleteConfirmModal && deleteConfirmText) {
+          deleteConfirmText.textContent = "¿Estás seguro de que deseas eliminar esta pregunta?"
+
+          // Configurar el botón de confirmación
+          const confirmDeleteBtn = document.getElementById("confirmDeleteBtn")
+          if (confirmDeleteBtn) {
+            // Eliminar event listeners anteriores
+            const newConfirmBtn = confirmDeleteBtn.cloneNode(true)
+            confirmDeleteBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteBtn)
+
+            // Añadir nuevo event listener
+            newConfirmBtn.addEventListener("click", () => {
+              // Aquí iría el código para eliminar la pregunta
+              // Y luego actualizar la UI sin recargar
+            })
+
+            // Mostrar el modal
+            if (bootstrap && bootstrap.Modal) {
+              const modal = new bootstrap.Modal(deleteConfirmModal)
+              modal.show()
+            } else {
+              deleteConfirmModal.style.display = "block"
+            }
+          }
+        }
+      })
+    }
+  }
+
+  // Nueva función para obtener y actualizar la lista de preguntas
+  function fetchAndUpdateQuestions(formId) {
+    fetch(`/forms/${formId}/questions/json/`, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success && data.questions) {
+          // Actualizar la lista de preguntas
+          const questionsList = document.getElementById("questionsList")
+          if (questionsList) {
+            // Limpiar la lista actual
+            questionsList.innerHTML = ""
+
+            if (data.questions.length > 0) {
+              // Añadir cada pregunta a la UI
+              data.questions.forEach((question) => {
+                addQuestionToUI(question)
+              })
+            } else {
+              // Mostrar mensaje de que no hay preguntas
+              questionsList.innerHTML = `
+                <div class="empty-questions">
+                    <i class="bi bi-question-circle"></i>
+                    <h3>No hay preguntas en este formulario</h3>
+                    <p class="text-muted">Haz clic en "Añadir Pregunta" para empezar a crear tu formulario o arrastra preguntas desde el banco.</p>
+                </div>
+              `
+            }
+          }
+        } else {
+          showToast("Error al actualizar la lista de preguntas", "danger")
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        showToast("Error al actualizar la lista de preguntas", "danger")
+      })
+  }
+
+  // Función para detectar duplicados en el DOM
+  function detectDuplicatesInDOM() {
+    const bankItems = document.querySelectorAll(".bank-question-item")
+    const textMap = new Map() // Mapa para rastrear textos de preguntas
+    const duplicatesFound = []
+
+    bankItems.forEach((item) => {
+      const text = item.querySelector(".bank-question-text").textContent.trim()
+      const type = item.dataset.type
+      const key = `${text}|${type}`
+
+      if (textMap.has(key)) {
+        // Este es un duplicado, marcarlo
+        item.classList.add("duplicate-item")
+        textMap.get(key).classList.add("duplicate-item")
+        duplicatesFound.push(item)
+      } else {
+        // Este es el primer elemento con este texto y tipo
+        textMap.set(key, item)
+      }
+    })
+
+    if (duplicatesFound.length > 0) {
+      console.log(`Se encontraron ${duplicatesFound.length} duplicados en el DOM`)
+      // Limpiar duplicados automáticamente
+      removeDuplicatesFromDOM()
+    }
+
+    return duplicatesFound.length
+  }
+
+  // Configurar actualización periódica del banco de preguntas
+  let updateInterval
+
+  function startAutoUpdate() {
+    // Limpiar cualquier intervalo existente
+    if (updateInterval) {
+      clearInterval(updateInterval)
+    }
+
+    // Actualizar cada 10 segundos
+    updateInterval = setInterval(() => {
+      // Solo actualizar si el banco está visible
+      const questionBank = document.getElementById("questionBank")
+      if (questionBank && questionBank.offsetParent !== null) {
+        console.log("Actualizando banco de preguntas automáticamente...")
+        updateQuestionBank()
+
+        // Limpiar duplicados en el servidor cada 30 segundos
+        if (Math.random() < 0.3) {
+          // ~30% de probabilidad en cada actualización
+          cleanupDuplicatesFromServer(false)
+        }
+      }
+    }, 10000) // 10 segundos
+  }
+
+  // Iniciar actualización automática
+  startAutoUpdate()
+
+  // Ejecutar limpieza inicial
+  setTimeout(() => {
+    // Limpiar duplicados en el DOM
+    removeDuplicatesFromDOM()
+
+    // Limpiar duplicados en el servidor silenciosamente
+    cleanupDuplicatesFromServer(false)
+  }, 1000)
+
+  // Modificar la función para inicializar los botones del banco de preguntas
+  function initBankQuestionButtons() {
+    console.log("Inicializando botones del banco de preguntas...")
+
+    // Botones para eliminar preguntas del banco
+    document.querySelectorAll(".delete-bank-question-btn").forEach((btn) => {
+      // Eliminar event listeners anteriores clonando el botón
+      const newBtn = btn.cloneNode(true)
+      if (btn.parentNode) {
+        btn.parentNode.replaceChild(newBtn, btn)
+      }
+
+      // Añadir nuevo event listener
+      newBtn.addEventListener("click", function(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        console.log("Botón eliminar clickeado para ID:", this.dataset.id)
+
+        const questionId = this.dataset.id
+
+        // Mostrar el modal de confirmación
+        const deleteConfirmText = document.getElementById("deleteConfirmText")
+        if (deleteConfirmText) {
+          deleteConfirmText.textContent = "¿Estás seguro de que deseas eliminar esta pregunta del banco?"
+
+          // Configurar el botón de confirmación
+          const confirmDeleteBtn = document.getElementById("confirmDeleteBtn")
+          if (confirmDeleteBtn) {
+            // Eliminar event listeners anteriores
+            const newConfirmBtn = confirmDeleteBtn.cloneNode(true)
+            confirmDeleteBtn.parentNode.replaceChild(newConfirmBtn, confirmDeleteBtn)
+
+            // Añadir nuevo event listener
+            newConfirmBtn.addEventListener("click", () => {
+              // Cerrar el modal
+              const modalElement = document.getElementById("deleteConfirmModal")
+              if (modalElement && bootstrap && bootstrap.Modal) {
+                const modal = bootstrap.Modal.getInstance(modalElement)
+                if (modal) {
+                  modal.hide()
+                }
+              }
+
+              // Eliminar la pregunta del banco directamente
+              deleteBankQuestion(questionId)
+            })
+
+            // Mostrar el modal
+            const modalElement = document.getElementById("deleteConfirmModal")
+            if (modalElement && bootstrap && bootstrap.Modal) {
+              const modal = new bootstrap.Modal(modalElement)
+              modal.show()
+            }
+          }
+        }
+      })
+    })
+
+    // Botones para añadir preguntas desde el banco
+    document.querySelectorAll(".add-bank-question-btn").forEach((btn) => {
+      // Eliminar event listeners anteriores clonando el botón
+      const newBtn = btn.cloneNode(true)
+      if (btn.parentNode) {
+        btn.parentNode.replaceChild(newBtn, btn)
+      }
+
+      // Añadir nuevo event listener
+      newBtn.addEventListener("click", function(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        console.log("Botón añadir clickeado para ID:", this.dataset.id)
+
+        const questionId = this.dataset.id
+        // Obtener el ID del formulario de la URL
+        const formId = window.location.pathname.split("/")[2] // Asumiendo que la URL es /forms/{formId}/...
+
+        // Llamar a la función para añadir la pregunta
+        addQuestionFromBank(formId, questionId)
+      })
+    })
+
+    // Botones para editar preguntas del banco
+    document.querySelectorAll(".edit-bank-question-btn").forEach((btn) => {
+      // Eliminar event listeners anteriores
+      const newBtn = btn.cloneNode(true)
+      if (btn.parentNode) {
+        btn.parentNode.replaceChild(newBtn, btn)
+      }
+
+      // Añadir nuevo event listener
+      newBtn.addEventListener("click", function(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        console.log("Botón editar clickeado para ID:", this.dataset.id)
+
+        const questionId = this.dataset.id
+        editBankQuestion(questionId)
+      })
+    })
+
+    console.log("Botones del banco de preguntas inicializados correctamente")
+  }
+
+  // Función para eliminar el backdrop de un modal
+  function removeModalBackdrop() {
+    const backdrop = document.querySelector(".modal-backdrop")
+    if (backdrop) {
+      backdrop.remove()
+    }
+  }
+
+  // Añadir pregunta
+  const saveQuestionBtn = document.getElementById("saveQuestionBtn")
+  const addQuestionForm = document.getElementById("addQuestionForm")
+
+  if (saveQuestionBtn) {
+    saveQuestionBtn.addEventListener("click", () => {
+      if (addQuestionForm.checkValidity()) {
+        // Crear un FormData con los datos del formulario
+        const formData = new FormData(addQuestionForm)
+
+        // Obtener el token CSRF
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value
+
+        // Enviar el formulario usando fetch para evitar recargar la página
+        fetch(addQuestionForm.action, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: formData,
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Error HTTP: ${response.status}`)
+            }
+            return response.json()
+          })
+          .then((data) => {
+            if (data.success) {
+              // Cerrar el modal
+              const modal = bootstrap.Modal.getInstance(document.getElementById("addQuestionModal"))
+              if (modal) modal.hide()
+
+              // Mostrar notificación
+              showToast("Pregunta añadida correctamente", "success")
+
+              // Recargar la página o actualizar la UI
+              location.reload()
+            } else {
+              showToast("Error al añadir la pregunta: " + (data.error || "Error desconocido"), "error")
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error)
+            showToast("Error al añadir la pregunta", "error")
+          })
+      } else {
+        addQuestionForm.reportValidity()
+      }
+    })
+  }
+
+  // Editar pregunta
+  const updateQuestionBtn = document.getElementById("updateQuestionBtn")
+  const editQuestionForm = document.getElementById("editQuestionForm")
+  const editQuestionType = document.getElementById("edit_question_type")
+  const editLinearScaleFields = document.getElementById("editLinearScaleFields")
+
+  if (editQuestionType) {
+    editQuestionType.addEventListener("change", function() {
+      if (this.value === "linear_scale") {
+        editLinearScaleFields.classList.remove("d-none")
+        updateEditScalePreview()
+      } else {
+        editLinearScaleFields.classList.add("d-none")
+      }
+    })
+  }
+
+  document.querySelectorAll(".edit-question-btn").forEach((btn) => {
+    btn.addEventListener("click", function() {
+      const questionId = this.dataset.id
+      const questionCard = document.querySelector(`.question-card[data-id="${questionId}"]`)
+
+      // Obtener datos de la pregunta
+      const questionText = questionCard.querySelector(".card-title").textContent
+      const questionType = questionCard.querySelector(".badge").textContent
+      const isRequired = questionCard.querySelector(".badge.bg-danger") !== null
+      const allowAttachments = questionCard.querySelector(".badge.attachment-allowed") !== null
+      const inQuestionBank = questionCard.querySelector(".badge.bg-success") !== null
+      const helpText = questionCard.querySelector(".text-muted.small")?.textContent || ""
+
+      // Llenar el formulario
+      document.getElementById("edit_text").value = questionText
+      document.getElementById("edit_help_text").value = helpText
+      document.getElementById("edit_is_required").checked = isRequired
+
+      // Verificar si los elementos existen antes de asignarles valores
+      const allowAttachmentsField = document.getElementById("edit_allow_attachments")
+      if (allowAttachmentsField) allowAttachmentsField.checked = allowAttachments
+
+      const inQuestionBankField = document.getElementById("edit_in_question_bank")
+      if (inQuestionBankField) inQuestionBankField.checked = inQuestionBank
+
+      // Seleccionar el tipo de pregunta
+      const typeSelect = document.getElementById("edit_question_type")
+      for (let i = 0; i < typeSelect.options.length; i++) {
+        if (typeSelect.options[i].text === questionType) {
+          typeSelect.selectedIndex = i
+          break
+        }
+      }
+
+      // Disparar el evento change para mostrar/ocultar campos específicos
+      const event = new Event("change")
+      typeSelect.dispatchEvent(event)
+
+      // Mostrar campos específicos según el tipo
+      if (questionType === "Escala Lineal") {
+        editLinearScaleFields.classList.remove("d-none")
+
+        // Obtener valores de escala
+        const minValue = questionCard
+          .querySelector(".col-6:first-child strong:first-of-type")
+          .nextSibling.textContent.trim()
+        const maxValue = questionCard
+          .querySelector(".col-6:last-child strong:first-of-type")
+          .nextSibling.textContent.trim()
+        const minLabel = questionCard
+          .querySelector(".col-6:first-child strong:last-of-type")
+          .nextSibling.textContent.trim()
+
+        const maxLabel = questionCard
+          .querySelector(".col-6:last-child strong:last-of-type")
+          .nextSibling.textContent.trim()
+
+        document.getElementById("edit_min_value").value = minValue
+        document.getElementById("edit_max_value").value = maxValue
+        document.getElementById("edit_min_label").value = minLabel
+        document.getElementById("edit_max_label").value = maxLabel
+
+        // Actualizar vista previa
+        updateEditScalePreview()
+      } else {
+        editLinearScaleFields.classList.add("d-none")
+      }
+
+      // Actualizar la URL del formulario
+      editQuestionForm.action = `/forms/question/${questionId}/edit/`
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById("editQuestionModal"))
+      modal.show()
+    })
+  })
+
+  if (updateQuestionBtn) {
+    updateQuestionBtn.addEventListener("click", () => {
+      if (editQuestionForm.checkValidity()) {
+        // Crear un FormData con los datos del formulario
+        const formData = new FormData(editQuestionForm)
+
+        // Obtener el token CSRF
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value
+
+        // Enviar el formulario usando fetch para evitar recargar la página
+        fetch(editQuestionForm.action, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: formData,
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Error HTTP: ${response.status}`)
+            }
+            return response.json()
+          })
+          .then((data) => {
+            if (data.success) {
+              // Cerrar el modal
+              const modal = bootstrap.Modal.getInstance(document.getElementById("editQuestionModal"))
+              if (modal) modal.hide()
+
+              // Mostrar notificación
+              showToast("Pregunta actualizada correctamente", "success")
+
+              // Recargar la página o actualizar la UI
+              location.reload()
+            } else {
+              showToast("Error al actualizar la pregunta: " + (data.error || "Error desconocido"), "error")
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error)
+            showToast("Error al actualizar la pregunta", "error")
+          })
+      } else {
+        editQuestionForm.reportValidity()
+      }
+    })
+  }
+
+  // Añadir opción
+  const saveOptionBtn = document.getElementById("saveOptionBtn")
+  const addOptionForm = document.getElementById("addOptionForm")
+
+  document.querySelectorAll(".add-option-btn").forEach((btn) => {
+    btn.addEventListener("click", function() {
+      const questionId = this.dataset.questionId
+      document.getElementById("option_question_id").value = questionId
+
+      // Actualizar la URL del formulario
+      addOptionForm.action = `/forms/question/${questionId}/add-option/`
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById("addOptionModal"))
+      modal.show()
+    })
+  })
+
+  if (saveOptionBtn) {
+    saveOptionBtn.addEventListener("click", () => {
+      if (addOptionForm.checkValidity()) {
+        addOptionForm.submit()
+      } else {
+        addOptionForm.reportValidity()
+      }
+    })
+  }
+
+  // Editar opción
+  const updateOptionBtn = document.getElementById("updateOptionBtn")
+  const editOptionForm = document.getElementById("editOptionForm")
+
+  document.querySelectorAll(".edit-option-btn").forEach((btn) => {
+    btn.addEventListener("click", function() {
+      const optionId = this.dataset.id
+      const optionItem = this.closest(".option-item")
+      const optionText = optionItem.querySelector(".option-text").textContent
+
+      // Llenar el formulario
+      document.getElementById("edit_option_id").value = optionId
+      document.getElementById("edit_option_text").value = optionText
+
+      // Actualizar la URL del formulario
+      editOptionForm.action = `/forms/option/${optionId}/edit/`
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById("editOptionModal"))
+      modal.show()
+    })
+  })
+
+  if (updateOptionBtn) {
+    updateOptionBtn.addEventListener("click", () => {
+      if (editOptionForm.checkValidity()) {
+        editOptionForm.submit()
+      } else {
+        editOptionForm.reportValidity()
+      }
+    })
+  }
+
+  // Eliminar pregunta o opción
+  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn")
+  const deleteConfirmText = document.getElementById("deleteConfirmText")
+  let deleteUrl = ""
+  const deleteMethod = "post"
+
+  document.querySelectorAll(".delete-question-btn").forEach((btn) => {
+    btn.addEventListener("click", function() {
+      const questionId = this.dataset.id
+      deleteUrl = `/forms/question/${questionId}/delete/`
+      deleteConfirmText.textContent = "¿Estás seguro de que deseas eliminar esta pregunta?"
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById("deleteConfirmModal"))
+      modal.show()
+    })
+  })
+
+  document.querySelectorAll(".delete-option-btn").forEach((btn) => {
+    btn.addEventListener("click", function() {
+      const optionId = this.dataset.id
+      deleteUrl = `/forms/option/${optionId}/delete/`
+      deleteConfirmText.textContent = "¿Estás seguro de que deseas eliminar esta opción?"
+
+      // Mostrar el modal
+      const modal = new bootstrap.Modal(document.getElementById("deleteConfirmModal"))
+      modal.show()
+    })
+  })
+
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", () => {
+      // Crear un formulario dinámico para enviar la solicitud POST
+      const form = document.createElement("form")
+      form.method = deleteMethod
+      form.action = deleteUrl
+
+      // Añadir CSRF token
+      const csrfInput = document.createElement("input")
+      csrfInput.type = "hidden"
+      csrfInput.name = "csrfmiddlewaretoken"
+      csrfInput.value = document.querySelector("[name=csrfmiddlewaretoken]").value
+      form.appendChild(csrfInput)
+
+      // Añadir el formulario al DOM y enviarlo
+      document.body.appendChild(form)
+      form.submit()
+    })
+  }
+
+  // Función para actualizar el orden de las preguntas
+  function updateQuestionsOrder(questionIds) {
+    // Obtener el ID del formulario de la URL
+    const formId = window.location.pathname.split("/")[2] // Asumiendo que la URL es /forms/{formId}/...
+
+    fetch(`/forms/${formId}/update-question-order/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+      },
+      body: JSON.stringify({
+        question_ids: questionIds,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("Orden de preguntas actualizado")
+        } else {
+          console.error("Error al actualizar el orden de preguntas:", data.error)
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+      })
+  }
+
+  // Función para actualizar el orden de las opciones
+  function updateOptionsOrder(questionId, optionIds) {
+    fetch(`/forms/question/${questionId}/update-option-order/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+      },
+      body: JSON.stringify({
+        option_ids: optionIds,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("Orden de opciones actualizado")
+        } else {
+          console.error("Error al actualizar el orden de opciones:", data.error)
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+      })
+  }
+
+  // Actualizar vista previa de escala lineal
+  const minValueInput = document.getElementById("id_min_value")
+  const maxValueInput = document.getElementById("id_max_value")
+  const minLabelInput = document.getElementById("id_min_label")
+  const maxLabelInput = document.getElementById("id_max_label")
+  const previewMinLabel = document.getElementById("preview-min-label")
+  const previewMaxLabel = document.getElementById("preview-max-label")
+  const scalePreviewOptions = document.querySelector(".scale-preview-options")
+
+  function updateScalePreview() {
+    if (minValueInput && maxValueInput && scalePreviewOptions) {
+      const minVal = Number.parseInt(minValueInput.value) || 1
+      const maxVal = Number.parseInt(maxValueInput.value) || 5
+
+      // Actualizar etiquetas
+      if (previewMinLabel && minLabelInput) {
+        previewMinLabel.textContent = minLabelInput.value || "Muy insatisfecho"
+      }
+
+      if (previewMaxLabel && maxLabelInput) {
+        previewMaxLabel.textContent = maxLabelInput.value || "Muy satisfecho"
+      }
+
+      // Actualizar opciones
+      if (scalePreviewOptions) {
+        scalePreviewOptions.innerHTML = ""
+        for (let i = minVal; i <= maxVal; i++) {
+          const span = document.createElement("span")
+          span.textContent = i
+          scalePreviewOptions.appendChild(span)
+        }
+      }
+    }
+  }
+
+  // Función para actualizar la vista previa en el modal de edición
+  function updateEditScalePreview() {
+    const editMinValue = document.getElementById("edit_min_value")
+    const editMaxValue = document.getElementById("edit_max_value")
+    const editMinLabel = document.getElementById("edit_min_label")
+    const editMaxLabel = document.getElementById("edit_max_label")
+    const editPreviewMinLabel = document.getElementById("edit-preview-min-label")
+    const editPreviewMaxLabel = document.getElementById("edit-preview-max-label")
+    const editScalePreviewOptions = document.querySelector("#editLinearScaleFields .scale-preview-options")
+
+    if (editMinValue && editMaxValue && editScalePreviewOptions) {
+      const minVal = Number.parseInt(editMinValue.value) || 1
+      const maxVal = Number.parseInt(editMaxValue.value) || 5
+
+      // Actualizar etiquetas
+      if (editPreviewMinLabel && editMinLabel) {
+        editPreviewMinLabel.textContent = editMinLabel.value || "Muy insatisfecho"
+      }
+
+      if (editPreviewMaxLabel && editMaxLabel) {
+        editPreviewMaxLabel.textContent = editMaxLabel.value || "Muy satisfecho"
+      }
+
+      // Actualizar opciones
+      if (editScalePreviewOptions) {
+        editScalePreviewOptions.innerHTML = ""
+        for (let i = minVal; i <= maxVal; i++) {
+          const span = document.createElement("span")
+          span.textContent = i
+          editScalePreviewOptions.appendChild(span)
+        }
+      }
+    }
+  }
+
+  // Añadir event listeners para actualizar la vista previa
+  if (minValueInput) minValueInput.addEventListener("input", updateScalePreview)
+  if (maxValueInput) maxValueInput.addEventListener("input", updateScalePreview)
+  if (minLabelInput) minLabelInput.addEventListener("input", updateScalePreview)
+  if (maxLabelInput) maxLabelInput.addEventListener("input", updateScalePreview)
+
+  // Event listeners para la vista previa en el modal de edición
+  const editMinValue = document.getElementById("edit_min_value")
+  const editMaxValue = document.getElementById("edit_max_value")
+  const editMinLabel = document.getElementById("edit_min_label")
+  const editMaxLabel = document.getElementById("edit_max_label")
+
+  if (editMinValue) editMinValue.addEventListener("input", updateEditScalePreview)
+  if (editMaxValue) editMaxValue.addEventListener("input", updateEditScalePreview)
+  if (editMinLabel) editMinLabel.addEventListener("input", updateEditScalePreview)
+  if (editMaxLabel) editMaxLabel.addEventListener("input", updateEditScalePreview)
+
+  // Inicializar vistas previas
+  updateScalePreview()
+  updateEditScalePreview()
+
+  // Asegurarse de que la función se ejecute cuando el DOM esté cargado
+  initBankQuestionButtons()
+
+  // También inicializar Sortable si está disponible
+  if (typeof Sortable === "function") {
+    initSortable()
+  }
+
+  // Exponer funciones globalmente para que puedan ser llamadas desde HTML
+  window.updateQuestionBank = updateQuestionBank
+  window.removeDuplicatesFromDOM = removeDuplicatesFromDOM
+  window.cleanupDuplicatesFromServer = cleanupDuplicatesFromServer
+  window.initBankQuestionButtons = initBankQuestionButtons
+  window.updateScalePreview = updateScalePreview
+  window.updateEditScalePreview = updateEditScalePreview
+})
+
+// Asegurarse de que la función se ejecute cuando el DOM esté completamente cargado
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM cargado, inicializando botones del banco...")
+  initBankQuestionButtons()
+
+  // También inicializar después de actualizar el banco de preguntas
+  const updateBankBtn = document.querySelector(".update-bank-btn")
+  if (updateBankBtn) {
+    updateBankBtn.addEventListener("click", () => {
+      updateQuestionBank()
+    })
+  }
+})
+
+// Exponer la función globalmente para que pueda ser llamada desde otros scripts
+window.initBankQuestionButtons = initBankQuestionButtons
+</script>
+{% endblock %}

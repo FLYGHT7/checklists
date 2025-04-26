@@ -1,0 +1,54 @@
+# Archivos de Python
+*.pyc
+*.pyo
+__pycache__/
+*.pyd
+.Python
+env/
+venv/
+*.env
+*.DS_Store
+*.swp
+
+# Archivos de configuración sensibles
+.env
+*.sqlite3
+db.sqlite3
+config/settings_local.py
+secrets.json
+
+# Archivos generados por Django
+/static/
+*.log
+media/
+local_settings.py
+
+# Archivos de dependencias
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de compilación
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Archivos de IDEs y Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de despliegue
+*.bak
+*.backup
+*.pid
+*.seed
+
+# Node.js (si usas npm/yarn en frontend)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Archivos de Docker (si usas Docker)
+docker-compose.override.yml

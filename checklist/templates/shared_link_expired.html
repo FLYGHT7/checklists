@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Link expired" %}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
+<style>
+  .expired-container {
+    max-width: 600px;
+    margin: 5rem auto;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .expired-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-200);
+    background-color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  [data-bs-theme="dark"] .expired-card {
+    background-color: var(--neutral-800);
+    border-color: var(--neutral-700);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .expired-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .expired-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.1)' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    z-index: 0;
+  }
+  
+  .expired-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .expired-body {
+    padding: 2.5rem;
+    text-align: center;
+  }
+  
+  .expired-icon {
+    font-size: 5rem;
+    color: #ef4444;
+    margin-bottom: 1.5rem;
+    animation: pulse 2s infinite;
+  }
+  
+  .expired-message {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--neutral-800);
+  }
+  
+  [data-bs-theme="dark"] .expired-message {
+    color: var(--neutral-200);
+  }
+  
+  .expired-description {
+    color: var(--neutral-600);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+  }
+  
+  [data-bs-theme="dark"] .expired-description {
+    color: var(--neutral-400);
+  }
+  
+  .btn-home {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.3);
+  }
+  
+  .btn-home:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(var(--bs-primary-rgb), 0.4);
+    color: white;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="expired-container">
+    <div class="expired-card">
+      <div class="expired-header">
+        <h1 class="expired-title">{% trans_tag "Link expired" %}</h1>
+      </div>
+      <div class="expired-body">
+        <i class="bi bi-exclamation-circle expired-icon"></i>
+        <h2 class="expired-message">{% trans_tag "The link you used has expired or is no longer valid" %}</h2>
+        <p class="expired-description">{% trans_tag "Please contact the person who shared this form with you to get a new access link." %}</p>
+        <a href="{% url 'home' %}" class="btn btn-home">
+          <i class="bi bi-house-door me-2"></i>{% trans_tag "Back to home" %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

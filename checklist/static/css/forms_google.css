@@ -1,0 +1,1115 @@
+/* Importar los estilos base */
+@import url("base.css");
+
+/* Variables de colores personalizados - Asegurando consistencia con todolist.css */
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #a5b4fc;
+  --secondary: #0ea5e9;
+  --accent: #ec4899;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1e293b;
+  --neutral-900: #0f172a;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Variables para modo oscuro */
+[data-bs-theme="dark"] {
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --primary-light: #a5b4fc;
+  --secondary: #38bdf8;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+}
+
+/* Estilos base */
+.form-section {
+  min-height: calc(100vh - 400px);
+  padding-bottom: 60px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.03), rgba(14, 165, 233, 0.03));
+}
+
+[data-bs-theme="dark"] .form-section {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(14, 165, 233, 0.05));
+  background-color: var(--neutral-900);
+}
+
+/* Estilos generales para formularios */
+.form-container {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background-color: white;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  border: 1px solid var(--neutral-200);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* Quitar el hover general */
+.form-container:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+[data-bs-theme="dark"] .form-container {
+  background-color: var(--neutral-800);
+  border-color: var(--neutral-700);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .form-container:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.form-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+[data-bs-theme="dark"] .form-header {
+  border-bottom-color: var(--neutral-700);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+}
+
+.form-body {
+  padding: 1.5rem;
+}
+
+.form-question {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  background-color: white;
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Quitar el hover de form-question */
+.form-question:hover {
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
+[data-bs-theme="dark"] .form-question {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+}
+
+[data-bs-theme="dark"] .form-question:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.form-question.required {
+  border-left: 4px solid var(--danger);
+}
+
+.question-image {
+  border-radius: var(--radius-sm);
+  max-height: 300px;
+  object-fit: cover;
+  width: 100%;
+  border: 1px solid var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .question-image {
+  border-color: var(--neutral-600);
+}
+
+.question-help {
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+[data-bs-theme="dark"] .question-help {
+  color: var(--neutral-400);
+}
+
+.attachment-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--neutral-300);
+}
+
+[data-bs-theme="dark"] .attachment-section {
+  border-top-color: var(--neutral-600);
+}
+
+.attachment-preview {
+  margin-top: 1rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  max-width: 100%;
+  border: 1px solid var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .attachment-preview {
+  border-color: var(--neutral-600);
+}
+
+/* Estilos para la escala lineal */
+.linear-scale-container {
+  margin: 1rem 0;
+}
+
+.scale-options {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Ocultar los inputs de radio originales */
+.scale-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Crear círculos personalizados para las opciones */
+.scale-option label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: 2px solid transparent;
+}
+
+/* Estilo cuando está seleccionado */
+.scale-option input[type="radio"]:checked + label {
+  background-color: var(--primary);
+  color: white;
+  transform: scale(1.05);
+  border-color: var(--primary);
+  box-shadow: 0 0.25rem 0.75rem rgba(99, 102, 241, 0.3);
+}
+
+/* Estilo al pasar el mouse */
+.scale-option label:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  transform: scale(1.05);
+  border-color: var(--primary);
+}
+
+[data-bs-theme="dark"] .scale-option label {
+  background-color: rgba(129, 140, 248, 0.2);
+  color: var(--primary-light);
+}
+
+[data-bs-theme="dark"] .scale-option input[type="radio"]:checked + label {
+  background-color: var(--primary);
+  color: white;
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  font-weight: 500;
+}
+
+[data-bs-theme="dark"] .scale-labels {
+  color: var(--neutral-400);
+}
+
+.min-label,
+.max-label {
+  max-width: 45%;
+}
+
+/* Vista previa de escala lineal en el editor */
+.linear-scale-preview {
+  padding: 1rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+  background-color: var(--neutral-100);
+}
+
+[data-bs-theme="dark"] .linear-scale-preview {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+}
+
+.scale-preview-options {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scale-preview-options span {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  font-weight: 600;
+  border: 1px solid var(--primary);
+}
+
+[data-bs-theme="dark"] .scale-preview-options span {
+  background-color: rgba(129, 140, 248, 0.2);
+  color: var(--primary-light);
+}
+
+.scale-preview-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  font-weight: 500;
+}
+
+[data-bs-theme="dark"] .scale-preview-labels {
+  color: var(--neutral-400);
+}
+
+/* Estilos para las respuestas */
+.response-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--neutral-200);
+  background-color: white;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* Quitar el hover de response-card */
+.response-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+[data-bs-theme="dark"] .response-card {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .response-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.response-header {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+[data-bs-theme="dark"] .response-header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+}
+
+.response-body {
+  padding: 1.5rem;
+}
+
+.response-item {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .response-item {
+  border-bottom-color: var(--neutral-600);
+}
+
+.response-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.response-question {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--neutral-900);
+}
+
+[data-bs-theme="dark"] .response-question {
+  color: white;
+}
+
+.response-answer {
+  background-color: var(--neutral-100);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+  color: var(--neutral-700);
+}
+
+[data-bs-theme="dark"] .response-answer {
+  background-color: var(--neutral-800);
+  border-color: var(--neutral-600);
+  color: var(--neutral-300);
+}
+
+.response-media {
+  margin-top: 1rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .response-media {
+  border-color: var(--neutral-600);
+}
+
+.response-media img,
+.response-media video {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+}
+
+/* Estilos para la lista de formularios */
+.form-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--neutral-200);
+  background-color: white;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+/* Mantener el hover SOLO para las tarjetas en form_list.html */
+/* Aplicamos el hover solo a las tarjetas con la clase form-card */
+.form-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-bs-theme="dark"] .form-card {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .form-card:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.form-card-body {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.form-card-footer {
+  padding: 1rem 1.5rem;
+  background-color: var(--neutral-100);
+  border-top: 1px solid var(--neutral-200);
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+[data-bs-theme="dark"] .form-card-footer {
+  background-color: var(--neutral-800);
+  border-top-color: var(--neutral-600);
+}
+
+.form-card-actions {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.form-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-status.published {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.form-status.draft {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: var(--neutral-500);
+}
+
+[data-bs-theme="dark"] .form-status.published {
+  background-color: rgba(52, 211, 153, 0.2);
+  color: var(--success);
+}
+
+[data-bs-theme="dark"] .form-status.draft {
+  background-color: rgba(148, 163, 184, 0.2);
+  color: var(--neutral-400);
+}
+
+/* Estilos para el editor de formularios */
+.question-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--neutral-200);
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* Quitar el hover de question-card */
+.question-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+[data-bs-theme="dark"] .question-card {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+}
+
+[data-bs-theme="dark"] .question-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.question-card-header {
+  padding: 1rem;
+  background-color: var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+[data-bs-theme="dark"] .question-card-header {
+  background-color: var(--neutral-800);
+  border-bottom-color: var(--neutral-600);
+}
+
+.question-card-body {
+  padding: 1.5rem;
+}
+
+.question-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-right: 0.5rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+  margin-bottom: 0.75rem;
+  background-color: white;
+  transition: all var(--transition-normal);
+}
+
+[data-bs-theme="dark"] .option-item {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+}
+
+.option-item:hover {
+  background-color: var(--neutral-100);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-bs-theme="dark"] .option-item:hover {
+  background-color: var(--neutral-600);
+}
+
+.option-handle {
+  cursor: move;
+  margin-right: 0.75rem;
+  color: var(--neutral-500);
+}
+
+[data-bs-theme="dark"] .option-handle {
+  color: var(--neutral-400);
+}
+
+.option-text {
+  flex-grow: 1;
+}
+
+.option-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Mejoras para formularios */
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-label {
+  cursor: pointer;
+  padding-left: 0.25rem;
+}
+
+.form-select,
+.form-control {
+  border-color: var(--neutral-200);
+  background-color: white;
+  color: var(--neutral-900);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+}
+
+[data-bs-theme="dark"] .form-select,
+[data-bs-theme="dark"] .form-control {
+  background-color: var(--neutral-800);
+  border-color: var(--neutral-600);
+  color: var(--neutral-200);
+}
+
+.form-select:focus,
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+/* Mejoras para botones */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-color: var(--primary);
+  box-shadow: 0 0.25rem 0.75rem rgba(99, 102, 241, 0.2);
+  transition: all var(--transition-normal);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(99, 102, 241, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+  transition: all var(--transition-normal);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(99, 102, 241, 0.2);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--success), #059669);
+  border-color: var(--success);
+  box-shadow: 0 0.25rem 0.75rem rgba(16, 185, 129, 0.2);
+  transition: all var(--transition-normal);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669, var(--success));
+  border-color: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(16, 185, 129, 0.3);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  border-color: var(--danger);
+  box-shadow: 0 0.25rem 0.75rem rgba(239, 68, 68, 0.2);
+  transition: all var(--transition-normal);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, var(--danger));
+  border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+  transition: all var(--transition-normal);
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.75rem rgba(239, 68, 68, 0.2);
+}
+
+/* Estilos para el modo oscuro */
+[data-bs-theme="dark"] .form-question {
+  background-color: var(--neutral-700);
+}
+
+[data-bs-theme="dark"] .response-answer {
+  background-color: var(--neutral-800);
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .scale-options {
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .scale-option label {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .scale-labels {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .min-label,
+  .max-label {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-card-footer .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-card-footer .btn {
+    width: 100%;
+  }
+
+  .response-header h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Mejoras de accesibilidad */
+.form-text {
+  color: var(--neutral-500);
+  margin-top: 0.25rem;
+}
+
+[data-bs-theme="dark"] .form-text {
+  color: var(--neutral-400);
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+/* Animación simple de fade-in */
+.animate-fade-in {
+  animation: simpleFadeIn 0.3s ease forwards;
+}
+
+@keyframes simpleFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mejoras para la lista de formularios */
+.row.g-4 {
+  margin-bottom: 3rem;
+}
+
+/* Asegurar que el footer se quede abajo */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main,
+.container {
+  flex: 1;
+}
+
+/* Estilos modernos para el botón de crear formulario */
+.btn-crear-formulario {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-normal);
+  box-shadow: 0 0.5rem 1rem rgba(99, 102, 241, 0.2);
+}
+
+.btn-crear-formulario:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.75rem 1.5rem rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+}
+
+.btn-crear-formulario i {
+  font-size: 1.25rem;
+}
+
+/* Mejoras para las tarjetas de formularios */
+.form-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, var(--primary), var(--secondary));
+  z-index: 1;
+}
+
+.form-card .card-title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--neutral-900);
+}
+
+[data-bs-theme="dark"] .form-card .card-title {
+  color: white;
+}
+
+.datetime {
+  font-weight: 500;
+}
+
+/* Mejoras para los botones de acción */
+.form-card-footer .btn,
+.form-card-actions .btn {
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all var(--transition-normal);
+}
+
+.form-card-footer .btn i,
+.form-card-actions .btn i {
+  font-size: 1rem;
+}
+
+.form-card-footer .btn:hover,
+.form-card-actions .btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Estilos para el estado del formulario */
+.form-status {
+  position: relative;
+  top: -2px;
+}
+
+/* Añadir hover a la página de agradecimiento */
+.form-container.animate-fade-in:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-bs-theme="dark"] .form-container.animate-fade-in:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Botones de acción con solo iconos */
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-normal);
+}
+
+.action-icon-btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-outline-success.action-icon-btn:hover {
+  background-color: var(--success);
+  color: white;
+  box-shadow: 0 0.25rem 0.75rem rgba(16, 185, 129, 0.3);
+}
+
+.btn-outline-danger.action-icon-btn:hover {
+  background-color: var(--danger);
+  color: white;
+  box-shadow: 0 0.25rem 0.75rem rgba(220, 53, 69, 0.3);
+}
+
+/* Estilos para el menú desplegable (tres puntos) */
+.dropdown-toggle {
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.dropdown-toggle:hover {
+  background-color: var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .dropdown-toggle:hover {
+  background-color: var(--neutral-600);
+}
+
+.dropdown-menu {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem 0;
+  min-width: 180px;
+  margin-top: 0.5rem;
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  background-color: var(--neutral-800);
+  border-color: var(--neutral-600);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.dropdown-item i {
+  font-size: 1rem;
+}
+
+.dropdown-item:hover {
+  background-color: var(--neutral-100);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+  color: var(--neutral-300);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+  background-color: var(--neutral-700);
+  color: white;
+}
+
+.dropdown-divider {
+  margin: 0.3rem 0;
+  border-color: var(--neutral-200);
+}
+
+[data-bs-theme="dark"] .dropdown-divider {
+  border-color: var(--neutral-600);
+}
+
+/* Estilos para el botón de tres puntos */
+.btn-three-dots {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  color: var(--neutral-600);
+  transition: all var(--transition-normal);
+}
+
+.btn-three-dots:hover {
+  background-color: var(--neutral-200);
+  transform: translateY(-2px);
+}
+
+[data-bs-theme="dark"] .btn-three-dots {
+  background-color: var(--neutral-700);
+  border-color: var(--neutral-600);
+  color: var(--neutral-300);
+}
+
+[data-bs-theme="dark"] .btn-three-dots:hover {
+  background-color: var(--neutral-600);
+}
+
+/* Toast notifications */
+.toast {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  opacity: 0;
+  animation: toastFadeIn 0.3s ease forwards;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast-success {
+  background-color: var(--success);
+  color: white;
+  border-left: 4px solid #059669;
+}
+
+.toast-error {
+  background-color: var(--danger);
+  color: white;
+  border-left: 4px solid #dc2626;
+}
+
+.toast-info {
+  background-color: var(--primary);
+  color: white;
+  border-left: 4px solid var(--primary-dark);
+}
+
+.toast-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toast-success .toast-body::before {
+  content: "\F26B"; /* Bootstrap icon check-circle-fill */
+  font-family: "bootstrap-icons";
+  font-size: 1.25rem;
+}
+
+.toast-error .toast-body::before {
+  content: "\F623"; /* Bootstrap icon exclamation-circle-fill */
+  font-family: "bootstrap-icons";
+  font-size: 1.25rem;
+}
+
+.toast-info .toast-body::before {
+  content: "\F431"; /* Bootstrap icon info-circle-fill */
+  font-family: "bootstrap-icons";
+  font-size: 1.25rem;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--neutral-50);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--neutral-300);
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+[data-bs-theme="dark"] .empty-state {
+  background-color: var(--neutral-800);
+  border-color: var(--neutral-600);
+}
+
+.empty-state i {
+  font-size: 3.5rem;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.empty-state h3 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--neutral-900);
+}
+
+[data-bs-theme="dark"] .empty-state h3 {
+  color: white;
+}
+
+.empty-state p {
+  color: var(--neutral-500);
+  margin-bottom: 1.5rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1.1rem;
+}
+
+[data-bs-theme="dark"] .empty-state p {
+  color: var(--neutral-400);
+}

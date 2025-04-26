@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Delete List" %} - DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/todolist.css' %}">
+<style>
+  /* Estilos específicos para la página de eliminación */
+  .delete-section {
+    min-height: calc(100vh - 400px);
+  }
+  
+  /* Anular explícitamente el efecto hover de las cards */
+  .delete-card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--neutral-200);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+    transform: none !important; /* Anular cualquier transformación en hover */
+    transition: none !important; /* Desactivar transiciones */
+  }
+  
+  .delete-card:hover {
+    transform: none !important; /* Forzar que no haya transformación en hover */
+    box-shadow: var(--shadow-md) !important; /* Mantener la misma sombra */
+  }
+  
+  [data-bs-theme="dark"] .delete-card {
+    border-color: var(--neutral-600);
+  }
+  
+  .delete-header {
+    background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+    color: white;
+    padding: 1.5rem;
+    position: relative;
+  }
+  
+  .delete-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  
+  .delete-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  
+  .delete-body {
+    padding: 2rem;
+    background-color: white;
+  }
+  
+  [data-bs-theme="dark"] .delete-body {
+    background-color: var(--neutral-800);
+  }
+  
+  .list-preview {
+    background-color: var(--neutral-50);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--danger);
+    position: relative;
+  }
+  
+  [data-bs-theme="dark"] .list-preview {
+    background-color: var(--neutral-700);
+  }
+  
+  .list-preview h4 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .list-preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(239, 68, 68, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: var(--radius-md);
+  }
+  
+  .list-preview:hover .list-preview-overlay {
+    opacity: 1;
+  }
+  
+  .list-preview:hover h4 {
+    text-decoration: line-through;
+    color: var(--danger);
+  }
+  
+  .delete-btn {
+    background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+    background-color: crimson;
+    border: none;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .delete-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="delete-section py-4">
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-md-8">
+        <h1 class="fw-bold" style="font-size: 1.75rem;">
+          <i class="bi bi-trash text-danger me-2"></i>
+          {% trans_tag "Delete Task List" %}
+        </h1>
+        <p class="text-muted mb-0">{% trans_tag "You are about to permanently delete this list" %}</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{% url 'todo_lists' %}" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back to lists" %}
+        </a>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="delete-card">
+          <div class="delete-header">
+            <div class="text-center">
+              <i class="bi bi-exclamation-triangle-fill delete-icon"></i>
+              <h4 class="mb-0">{% trans_tag "Warning: This action cannot be undone" %}</h4>
+            </div>
+          </div>
+          <div class="delete-body">
+            <div class="alert alert-danger mb-4">
+              <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-info-circle-fill fs-4"></i>
+                <div>
+                  <p class="mb-0">{% trans_tag "This will permanently delete the list and all its tasks. You will not be able to recover this information." %}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="list-preview" id="listToDelete">
+              <div class="list-preview-overlay">
+                <i class="bi bi-x-circle-fill fs-1 text-danger"></i>
+              </div>
+              <h4>{{ todo_list.name }}</h4>
+              <div class="d-flex gap-2 mb-2">
+                <span class="badge bg-primary">{{ todo_list.tasks.count }} {% trans_tag "tasks" %}</span>
+                <span class="badge bg-secondary">{% trans_tag "Created" %}: {{ todo_list.created_at|date:"d/m/Y" }}</span>
+              </div>
+            </div>
+            
+            <form method="post" id="deleteForm">
+              {% csrf_token %}
+              <div class="d-flex justify-content-between gap-3">
+                <a href="{% url 'todo_lists' %}" class="btn btn-outline-secondary flex-grow-1">
+                  <i class="bi bi-x-lg me-2"></i>{% trans_tag "Cancel" %}
+                </a>
+                <button type="submit" class="btn btn-danger delete-btn flex-grow-1" id="deleteBtn">
+                  <i class="bi bi-trash me-2"></i>{% trans_tag "Delete Permanently" %}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Añadir efecto de shake al botón de eliminar
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('mouseenter', function() {
+        setTimeout(() => {
+          this.classList.add('shake-animation');
+        }, 300);
+      });
+      
+      deleteBtn.addEventListener('mouseleave', function() {
+        this.classList.remove('shake-animation');
+      });
+    }
+  });
+</script>
+
+<style>
+  /* Estilos para la animación de shake */
+  .shake-animation {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+</style>
+{% endblock %}

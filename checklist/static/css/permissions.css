@@ -1,0 +1,321 @@
+/* Estilos para la sección de permisos */
+.permission-options {
+    margin-bottom: 1rem;
+  }
+  
+  .permission-options .form-check {
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+  }
+  
+  .permission-options .form-check:hover {
+    background-color: #f8f9fa;
+  }
+  
+  [data-bs-theme="dark"] .permission-options .form-check:hover {
+    background-color: #2d3748;
+  }
+  
+  .permission-options .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+  }
+  
+  .permission-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  
+  .permission-editor {
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+  }
+  
+  .permission-responder {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  
+  .permission-viewer {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+  
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  /* Estilos para la gestión de permisos */
+  .permission-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+  }
+  
+  .permission-item:last-child {
+    border-bottom: none;
+  }
+  
+  .permission-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.03);
+  }
+  
+  .permission-user {
+    display: flex;
+    align-items: center;
+  }
+  
+  .permission-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bs-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+  }
+  
+  .permission-info {
+    flex-grow: 1;
+  }
+  
+  .permission-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .permission-email {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+  }
+  
+  .permission-type {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 1rem;
+  }
+  
+  .permission-type.editor {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+  }
+  
+  .permission-type.responder {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    color: var(--bs-success);
+  }
+  
+  .permission-type.viewer {
+    background-color: rgba(var(--bs-info-rgb), 0.1);
+    color: var(--bs-info);
+  }
+  
+  .share-link-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: white;
+    border: 1px solid #e9ecef;
+  }
+  
+  [data-bs-theme="dark"] .share-link-item {
+    background-color: #1a202c;
+    border-color: #4a5568;
+  }
+  
+  .share-link-icon {
+    margin-right: 0.5rem;
+    color: #6c757d;
+  }
+  
+  .share-link-text {
+    flex-grow: 1;
+    font-family: monospace;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .share-link-actions {
+    display: flex;
+    gap: 0.25rem;
+  }
+  
+  .share-link-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .expiration-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .expiration-options .form-check {
+    margin-right: 1rem;
+  }
+  
+  /* Estado vacío */
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    color: var(--bs-secondary-color);
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  
+  .empty-state h4 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
+    color: var(--bs-secondary-color);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  /* Estilos para los badges de permisos */
+  .badge.bg-info {
+    background-color: #17a2b8 !important;
+  }
+  
+  .badge.bg-success {
+    background-color: #28a745 !important;
+  }
+  
+  .badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529;
+  }
+  
+  /* Estilos para la tabla de permisos */
+  .permissions-table th,
+  .permissions-table td {
+    vertical-align: middle;
+  }
+  
+  .permissions-table .user-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .permissions-table .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #6c757d;
+  }
+  
+  [data-bs-theme="dark"] .permissions-table .user-avatar {
+    background-color: #4a5568;
+    color: #e2e8f0;
+  }
+  
+  .table th {
+    background-color: #f8f9fa;
+  }
+  
+  /* Estilos para los enlaces de compartir */
+  .table .input-group {
+    max-width: 300px;
+  }
+  
+  .copy-link {
+    white-space: nowrap;
+  }
+  
+  .copy-tooltip {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    z-index: 1000;
+    animation: fadeInOut 2s ease-in-out;
+  }
+  
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  
+  /* Animaciones */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  /* Estilos para dispositivos móviles */
+  @media (max-width: 768px) {
+    .table-responsive {
+      font-size: 0.875rem;
+    }
+  
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+  }
+  

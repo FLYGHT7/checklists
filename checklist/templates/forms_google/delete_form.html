@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Delete Form" %}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="form-container shadow-sm">
+                <div class="form-header bg-danger text-white">
+                    <h2 class="mb-0">{% trans_tag "Delete Form" %}</h2>
+                </div>
+                <div class="form-body">
+                    <div class="alert alert-warning animate-fade-in">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i>
+                            </div>
+                            <div>
+                                <h4 class="alert-heading">{% trans_tag "Warning!" %}</h4>
+                                <p>{% trans_tag "You are about to delete the form" %} <strong>"{{ gform.title }}"</strong>.</p>
+                                <p class="mb-0">{% trans_tag "This action will permanently delete the form and all its associated questions, options, and responses. This action cannot be undone." %}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gform_edit' form_id=gform.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i> {% trans_tag "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i> {% trans_tag "Delete Permanently" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

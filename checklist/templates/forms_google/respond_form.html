@@ -1,0 +1,502 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Respond" %}: {{ gform.title }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}">
+<style>
+    /* Estilos mejorados para la página de respuesta */
+    .respond-header {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 2rem 0;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    [data-bs-theme="dark"] .respond-header {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .respond-header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.1)' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.5;
+        z-index: 0;
+    }
+    
+    .respond-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        animation: fadeInDown 0.6s ease-out;
+        background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0.8));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+        display: inline-block;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.3);
+        padding-bottom: 0.5rem;
+        transform-origin: left;
+        transition: transform 0.3s ease;
+    }
+
+    .respond-title:hover {
+        transform: scale(1.02);
+    }
+    
+    .respond-description {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        line-height: 1.7;
+        animation: fadeInUp 0.6s ease-out;
+        padding-left: 1rem;
+        border-left: 4px solid rgba(255, 255, 255, 0.3);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(5px);
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+    }
+    
+    .respond-container {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .respond-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .respond-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        backdrop-filter: blur(4px);
+        animation: fadeInLeft 0.6s ease-out;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .respond-badge i {
+        margin-right: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .respond-footer {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--bs-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .required-notice {
+        font-size: 0.875rem;
+        color: var(--bs-secondary-color);
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .required-notice .text-danger {
+        font-weight: bold;
+    }
+    
+    /* Anular los estilos de hover para form-question en este template específico */
+    .form-question {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: none;
+        animation: fadeIn 0.5s ease-out forwards;
+        animation-delay: calc(var(--animation-order) * 0.1s);
+        opacity: 0;
+    }
+    
+    /* Anular explícitamente el hover */
+    .form-question:hover {
+        transform: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    [data-bs-theme="dark"] .form-question {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    [data-bs-theme="dark"] .form-question:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .submit-btn {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border: none;
+        box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(var(--bs-primary-rgb), 0.4);
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes pulse {
+        0% {
+            opacity: 0.1;
+            transform: translateY(-50%) scale(1);
+        }
+        50% {
+            opacity: 0.2;
+            transform: translateY(-50%) scale(1.05);
+        }
+        100% {
+            opacity: 0.1;
+            transform: translateY(-50%) scale(1);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="respond-header">
+    <div class="container">
+        <div class="respond-container">
+            <div class="respond-header-content">
+                <div class="respond-badge">
+                    <i class="bi bi-clipboard-check"></i>{% trans_tag "Form" %}
+                </div>
+                <h1 class="respond-title">{{ gform.title }}</h1>
+                {% if gform.description %}
+                <p class="respond-description">{{ gform.description }}</p>
+                {% endif %}
+            </div>
+            <div class="respond-header-icon">
+                <i class="bi bi-clipboard-data"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="respond-container">
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} animate-fade-in">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="required-notice">
+            <i class="bi bi-info-circle me-2"></i>
+            {% trans_tag "Fields marked with" %} <span class="text-danger">*</span> {% trans_tag "are required" %}
+        </div>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if not request.user.is_authenticated %}
+            <div class="form-question animate-fade-in" style="--animation-order: 1">
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold fs-5">
+                        {% trans_tag "Your email" %} <span class="text-danger">*</span>
+                    </label>
+                    <div class="question-help">{% trans_tag "Your email will be used to identify your response." %}</div>
+                </div>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            {% endif %}
+            
+            {% for question in questions %}
+            <div class="form-question {% if question.is_required %}required{% endif %}" style="--animation-order: {{ forloop.counter|add:1 }}">
+                <div class="mb-3">
+                    <label for="question_{{ question.id }}" class="form-label fw-bold fs-5">
+                        {{ question.text }}
+                        {% if question.is_required %}
+                        <span class="text-danger">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    {% if question.help_text %}
+                    <div class="question-help">{{ question.help_text }}</div>
+                    {% endif %}
+                    
+                    {% if question.image %}
+                    <div class="mt-3 mb-3">
+                        <img src="{{ question.image.url }}" alt="{% trans_tag "Question image" %}" class="question-image">
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if question.question_type == 'short_text' %}
+                <input type="text" class="form-control" id="question_{{ question.id }}" name="question_{{ question.id }}" {% if question.is_required %}required{% endif %}>
+                
+                {% elif question.question_type == 'paragraph' %}
+                <textarea class="form-control" id="question_{{ question.id }}" name="question_{{ question.id }}" rows="3" {% if question.is_required %}required{% endif %}></textarea>
+                
+                {% elif question.question_type == 'multiple_choice' %}
+                <div class="d-flex flex-column gap-2">
+                    {% for option in question.options.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="option_{{ option.id }}" value="{{ option.id }}" {% if question.is_required %}required{% endif %}>
+                        <label class="form-check-label" for="option_{{ option.id }}">
+                            {{ option.text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% elif question.question_type == 'checkbox' %}
+                <div class="d-flex flex-column gap-2">
+                    {% for option in question.options.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="question_{{ question.id }}" id="option_{{ option.id }}" value="{{ option.id }}">
+                        <label class="form-check-label" for="option_{{ option.id }}">
+                            {{ option.text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% elif question.question_type == 'dropdown' %}
+                <select class="form-select" id="question_{{ question.id }}" name="question_{{ question.id }}" {% if question.is_required %}required{% endif %}>
+                    <option value="">{% trans_tag "Select an option" %}</option>
+                    {% for option in question.options.all %}
+                    <option value="{{ option.id }}">{{ option.text }}</option>
+                    {% endfor %}
+                </select>
+                
+                {% elif question.question_type == 'linear_scale' %}
+                <div class="linear-scale-container">
+                    {% with min_val=question.min_value|default:1 max_val=question.max_value|default:5 %}
+                    <div class="scale-options">
+                        {% for i in question.range_values %}
+                        <div class="scale-option">
+                            <input type="radio" name="question_{{ question.id }}" id="scale_{{ question.id }}_{{ i }}" value="{{ i }}" {% if question.is_required %}required{% endif %}>
+                            <label for="scale_{{ question.id }}_{{ i }}">{{ i }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="scale-labels">
+                        <span class="min-label">{{ question.min_label|default:'' }}</span>
+                        <span class="max-label">{{ question.max_label|default:'' }}</span>
+                    </div>
+                    {% endwith %}
+                </div>
+                
+                {% elif question.question_type == 'date' %}
+                <input type="date" class="form-control" id="question_{{ question.id }}" name="question_{{ question.id }}" {% if question.is_required %}required{% endif %}>
+                
+                {% elif question.question_type == 'time' %}
+                <input type="time" class="form-control" id="question_{{ question.id }}" name="question_{{ question.id }}" {% if question.is_required %}required{% endif %}>
+                
+                {% endif %}
+                
+                <!-- Campos para adjuntar archivos (solo si están permitidos) -->
+                {% if question.allow_attachments %}
+                <div class="attachment-section">
+                  <div class="mb-3">
+                    <label for="file_{{ question.id }}" class="form-label d-flex align-items-center">
+                      <i class="bi bi-paperclip me-2"></i>{% trans_tag "Attach image or video (optional)" %}
+                    </label>
+                    <input type="file" class="form-control" id="file_{{ question.id }}" name="file_{{ question.id }}" accept="image/*,video/*">
+                  </div>
+                  <div class="mb-3">
+                    <label for="url_{{ question.id }}" class="form-label d-flex align-items-center">
+                      <i class="bi bi-link-45deg me-2"></i>{% trans_tag "Or provide an image/video URL (optional)" %}
+                    </label>
+                    <input type="url" class="form-control" id="url_{{ question.id }}" name="url_{{ question.id }}" placeholder="https://example.com/image.jpg">
+                  </div>
+                  
+                  <!-- Vista previa de archivos -->
+                  <div class="attachment-preview d-none" id="preview_{{ question.id }}">
+                    <div class="card">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>{% trans_tag "Preview" %}</span>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="clearPreview('preview_{{ question.id }}')"></button>
+                      </div>
+                      <div class="card-body p-0 text-center">
+                        <div id="preview_content_{{ question.id }}"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="respond-footer">
+                <a href="{% url 'gform_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back" %}
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg submit-btn">
+                    <i class="bi bi-send me-2"></i>{% trans_tag "Submit Response" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Función para mostrar vista previa de archivos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Para cada input de archivo
+        document.querySelectorAll('input[type="file"]').forEach(fileInput => {
+            const questionId = fileInput.id.split('_')[1];
+            const previewContainer = document.getElementById(`preview_${questionId}`);
+            const previewContent = document.getElementById(`preview_content_${questionId}`);
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        previewContainer.classList.remove('d-none');
+                        
+                        if (file.type.startsWith('image/')) {
+                            previewContent.innerHTML = `<img src="${e.target.result}" class="img-fluid" alt="{% trans_tag "Preview" %}">`;
+                        } else if (file.type.startsWith('video/')) {
+                            previewContent.innerHTML = `
+                                <video controls class="img-fluid">
+                                    <source src="${e.target.result}" type="${file.type}">
+                                    {% trans_tag "Your browser does not support video playback." %}
+                                </video>
+                            `;
+                        } else {
+                            previewContent.innerHTML = `<p class="p-3">{% trans_tag "Selected file" %}: ${file.name}</p>`;
+                        }
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+        
+        // Para cada input de URL
+        document.querySelectorAll('input[type="url"]').forEach(urlInput => {
+            const questionId = urlInput.id.split('_')[1];
+            const previewContainer = document.getElementById(`preview_${questionId}`);
+            const previewContent = document.getElementById(`preview_content_${questionId}`);
+            
+            urlInput.addEventListener('change', function() {
+                if (this.value) {
+                    const url = this.value.toLowerCase();
+                    previewContainer.classList.remove('d-none');
+                    
+                    if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png') || url.endsWith('.gif')) {
+                        previewContent.innerHTML = `<img src="${this.value}" class="img-fluid" alt="{% trans_tag "Preview" %}">`;
+                    } else if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg')) {
+                        previewContent.innerHTML = `
+                            <video controls class="img-fluid">
+                                <source src="${this.value}" type="video/mp4">
+                                {% trans_tag "Your browser does not support video playback." %}
+                            </video>
+                        `;
+                    } else {
+                        previewContent.innerHTML = `
+                            <div class="p-3">
+                                <p class="mb-2">{% trans_tag "Provided URL" %}:</p>
+                                <a href="${this.value}" target="_blank" class="d-block text-truncate">${this.value}</a>
+                            </div>
+                        `;
+                    }
+                }
+            });
+        });
+    });
+    
+    // Función para limpiar la vista previa
+    function clearPreview(previewId) {
+        const previewContainer = document.getElementById(previewId);
+        const previewContent = previewContainer.querySelector('div[id^="preview_content_"]');
+        
+        previewContainer.classList.add('d-none');
+        previewContent.innerHTML = '';
+        
+        // Limpiar los inputs relacionados
+        const questionId = previewId.split('_')[1];
+        const fileInput = document.getElementById(`file_${questionId}`);
+        const urlInput = document.getElementById(`url_${questionId}`);
+        
+        if (fileInput) fileInput.value = '';
+        if (urlInput) urlInput.value = '';
+    }
+</script>
+{% endblock %}

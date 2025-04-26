@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{{ todo_list.name }} - DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/todolist.css' %}">
+<link rel="stylesheet" href="{% static 'css/view_todo_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="todolist-section py-5">
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-lg-8">
+        <h1 class="fw-bold">{{ todo_list.name }}</h1>
+        <p class="text-muted">
+          <i class="bi bi-calendar3 me-1"></i> {% trans_tag "Created" %}: {{ todo_list.created_at|date:"d/m/Y" }} | 
+          <i class="bi bi-list-check me-1"></i> {{ todo_list.tasks.count }} {% trans_tag "tasks in total" %}
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-lg-end">
+          <a href="{% url 'add_task' todo_list.id %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>{% trans_tag "Add Task" %}
+          </a>
+          <a href="{% url 'todo_lists' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans_tag "Back" %}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-board">
+      <div class="task-board-header">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-kanban me-2"></i>
+          <span>{% trans_tag "Task Board" %}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="d-none d-md-inline text-white-50">{% trans_tag "Drag tasks to change their status" %}</span>
+        </div>
+      </div>
+      <div class="task-board-content">
+        <!-- Columna: Por Hacer -->
+        <div class="task-column">
+          <div class="task-column-header">
+            <span>{% trans_tag "To Do" %}</span>
+            <span class="task-count" id="todo-count">{{ tasks.todo|length }}</span>
+          </div>
+          <div class="task-items" id="todo-tasks" data-column="todo">
+            {% for task in tasks.todo %}
+              <div class="task-card" 
+                   id="task-{{ task.id }}" 
+                   draggable="true" 
+                   data-task-id="{{ task.id }}" 
+                   data-due-date="{% if task.due_date %}{{ task.due_date|date:'Y-m-d' }}{% endif %}">
+                <div class="task-card-actions">
+                  <a href="{% url 'edit_task' task.id %}" class="task-action-btn edit-btn" aria-label="{% trans_tag 'Edit task' %}">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="task-action-btn delete-btn" data-bs-toggle="modal" data-bs-target="#deleteTaskModal" data-task-id="{{ task.id }}" aria-label="{% trans_tag 'Delete task' %}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <h6>{{ task.title }}</h6>
+                {% if task.description %}
+                  <p>{{ task.description }}</p>
+                {% endif %}
+                {% if task.due_date %}
+                  <div class="task-due-date">
+                    <i class="bi bi-calendar me-1"></i>{{ task.due_date|date:"d/m/Y H:i" }}
+                    {% if task.due_date < today_date %}
+                      <span class="badge bg-danger ms-1">{% trans_tag "Overdue" %}</span>
+                    {% elif task.due_date == today_date %}
+                      <span class="badge bg-success ms-1">{% trans_tag "Today" %}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            <div class="empty-column-message text-center p-4 text-muted" id="todo-empty-message" {% if tasks.todo %}style="display: none;"{% endif %}>
+              <i class="bi bi-inbox fs-1 mb-2 d-block"></i>
+              <p>{% trans_tag "No tasks to do" %}</p>
+              <a href="{% url 'add_task' todo_list.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg me-1"></i>{% trans_tag "Add" %}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna: En Progreso -->
+        <div class="task-column">
+          <div class="task-column-header">
+            <span>{% trans_tag "In Progress" %}</span>
+            <span class="task-count" id="progress-count">{{ tasks.progress|length }}</span>
+          </div>
+          <div class="task-items" id="progress-tasks" data-column="progress">
+            {% for task in tasks.progress %}
+              <div class="task-card" 
+                   id="task-{{ task.id }}" 
+                   draggable="true" 
+                   data-task-id="{{ task.id }}" 
+                   data-due-date="{% if task.due_date %}{{ task.due_date|date:'Y-m-d' }}{% endif %}">
+                <div class="task-card-actions">
+                  <a href="{% url 'edit_task' task.id %}" class="task-action-btn edit-btn" aria-label="{% trans_tag 'Edit task' %}">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="task-action-btn delete-btn" data-bs-toggle="modal" data-bs-target="#deleteTaskModal" data-task-id="{{ task.id }}" aria-label="{% trans_tag 'Delete task' %}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <h6>{{ task.title }}</h6>
+                {% if task.description %}
+                  <p>{{ task.description }}</p>
+                {% endif %}
+                {% if task.due_date %}
+                  <div class="task-due-date">
+                    <i class="bi bi-calendar me-1"></i>{{ task.due_date|date:"d/m/Y H:i" }}
+                    {% if task.due_date.date < today_date %}
+                      <span class="badge bg-danger ms-1">{% trans_tag "Overdue" %}</span>
+                    {% elif task.due_date.date == today_date %}
+                      <span class="badge bg-success ms-1">{% trans_tag "Today" %}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            <div class="empty-column-message text-center p-4 text-muted" id="progress-empty-message" {% if tasks.progress %}style="display: none;"{% endif %}>
+              <i class="bi bi-hourglass-split fs-1 mb-2 d-block"></i>
+              <p>{% trans_tag "No tasks in progress" %}</p>
+              <small>{% trans_tag "Drag tasks here to mark them as 'In Progress'" %}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna: Completado -->
+        <div class="task-column">
+          <div class="task-column-header">
+            <span>{% trans_tag "Completed" %}</span>
+            <span class="task-count" id="done-count">{{ tasks.done|length }}</span>
+          </div>
+          <div class="task-items" id="done-tasks" data-column="done">
+            {% for task in tasks.done %}
+              <div class="task-card" 
+                   id="task-{{ task.id }}" 
+                   draggable="true" 
+                   data-task-id="{{ task.id }}" 
+                   data-due-date="{% if task.due_date %}{{ task.due_date|date:'Y-m-d' }}{% endif %}">
+                <div class="task-card-actions">
+                  <a href="{% url 'edit_task' task.id %}" class="task-action-btn edit-btn" aria-label="{% trans_tag 'Edit task' %}">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="task-action-btn delete-btn" data-bs-toggle="modal" data-bs-target="#deleteTaskModal" data-task-id="{{ task.id }}" aria-label="{% trans_tag 'Delete task' %}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                <h6>{{ task.title }}</h6>
+                {% if task.description %}
+                  <p>{{ task.description }}</p>
+                {% endif %}
+                {% if task.due_date %}
+                  <div class="task-due-date">
+                    <i class="bi bi-calendar me-1"></i>{{ task.due_date|date:"d/m/Y H:i" }}
+                    {% if task.due_date.date < today_date %}
+                      <span class="badge bg-danger ms-1">{% trans_tag "Overdue" %}</span>
+                    {% elif task.due_date.date == today_date %}
+                      <span class="badge bg-success ms-1">{% trans_tag "Today" %}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            <div class="empty-column-message text-center p-4 text-muted" id="done-empty-message" {% if tasks.done %}style="display: none;"{% endif %}>
+              <i class="bi bi-check2-circle fs-1 mb-2 d-block"></i>
+              <p>{% trans_tag "No completed tasks" %}</p>
+              <small>{% trans_tag "Drag tasks here to mark them as 'Completed'" %}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Estadísticas de la lista -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title mb-3">{% trans_tag "List Statistics" %}</h5>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <h6 class="text-muted mb-2">{% trans_tag "Overall Progress" %}</h6>
+                {% with todo_count=tasks.todo|length %}
+                  {% with progress_count=tasks.progress|length %}
+                    {% with done_count=tasks.done|length %}
+                      {% with total=todo_count|add:progress_count|add:done_count %}
+                        <div class="progress" style="height: 10px;">
+                          <div class="progress-bar bg-success" role="progressbar" 
+                              style="width: 0%;" 
+                              aria-valuenow="0" 
+                              aria-valuemin="0" 
+                              aria-valuemax="100"
+                              id="main-progress-bar"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 small">
+                          <span id="tasks-completed-text">{{ done_count }} {% trans_tag "of" %} {{ total }} {% trans_tag "tasks completed" %}</span>
+                          <span id="progress-percentage">0%</span>
+                        </div>
+                      {% endwith %}
+                    {% endwith %}
+                  {% endwith %}
+                {% endwith %}
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-muted mb-2">{% trans_tag "Task Distribution" %}</h6>
+                <div class="d-flex gap-3">
+                  <div class="stat-pill">
+                    <span class="stat-value todo-value" id="todo-stat">{{ tasks.todo|length }}</span>
+                    <span class="stat-label">{% trans_tag "To Do" %}</span>
+                  </div>
+                  <div class="stat-pill">
+                    <span class="stat-value progress-value" id="progress-stat">{{ tasks.progress|length }}</span>
+                    <span class="stat-label">{% trans_tag "In Progress" %}</span>
+                  </div>
+                  <div class="stat-pill">
+                    <span class="stat-value done-value" id="done-stat">{{ tasks.done|length }}</span>
+                    <span class="stat-label">{% trans_tag "Completed" %}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal de confirmación para eliminar tarea -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteTaskModalLabel">{% trans_tag "Delete Task" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans_tag 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="modal-icon-wrapper bg-danger-subtle rounded-circle p-3">
+            <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+          </div>
+          <div>
+            <h5 class="mb-1">{% trans_tag "Are you sure?" %}</h5>
+            <p class="mb-0 text-muted">{% trans_tag "This action cannot be undone." %}</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans_tag "Cancel" %}</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="bi bi-trash me-2"></i>{% trans_tag "Delete" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/todolist.js' %}"></script>
+<script src="{% static 'js/task_board_fixes.js' %}"></script>
+<script src="{% static 'js/task_board_updates.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar la barra de progreso
+    updateProgressBar();
+    
+    // Función para actualizar la barra de progreso
+    function updateProgressBar() {
+      const todoCount = document.querySelectorAll('#todo-tasks .task-card').length;
+      const progressCount = document.querySelectorAll('#progress-tasks .task-card').length;
+      const doneCount = document.querySelectorAll('#done-tasks .task-card').length;
+      const totalCount = todoCount + progressCount + doneCount;
+      
+      // Actualizar contadores
+      document.getElementById('todo-count').textContent = todoCount;
+      document.getElementById('progress-count').textContent = progressCount;
+      document.getElementById('done-count').textContent = doneCount;
+      
+      document.getElementById('todo-stat').textContent = todoCount;
+      document.getElementById('progress-stat').textContent = progressCount;
+      document.getElementById('done-stat').textContent = doneCount;
+      
+      // Calcular porcentaje
+      let percentage = 0;
+      if (totalCount > 0) {
+        percentage = Math.round((doneCount / totalCount) * 100);
+      }
+      
+      // Actualizar barra de progreso
+      const progressBar = document.getElementById('main-progress-bar');
+      progressBar.style.width = percentage + '%';
+      progressBar.setAttribute('aria-valuenow', percentage.toString());
+      
+      // Actualizar texto de porcentaje
+      document.getElementById('progress-percentage').textContent = percentage + '%';
+      document.getElementById('tasks-completed-text').textContent = `${doneCount} {% trans_tag "of" %} ${totalCount} {% trans_tag "tasks completed" %}`;
+      
+      // Mostrar/ocultar mensajes de columnas vacías
+      toggleEmptyMessage('todo', todoCount);
+      toggleEmptyMessage('progress', progressCount);
+      toggleEmptyMessage('done', doneCount);
+    }
+    
+    // Función para mostrar/ocultar mensajes de columnas vacías
+    function toggleEmptyMessage(columnType, count) {
+      const emptyMessage = document.getElementById(`${columnType}-empty-message`);
+      if (count > 0) {
+        emptyMessage.style.display = 'none';
+      } else {
+        emptyMessage.style.display = 'block';
+      }
+    }
+    
+    // Sobrescribir la función updateTasksOrder del archivo todolist.js
+    // para actualizar la barra de progreso después de mover una tarea
+    const originalUpdateTasksOrder = window.updateTasksOrder;
+    if (originalUpdateTasksOrder) {
+      window.updateTasksOrder = function(data) {
+        const result = originalUpdateTasksOrder(data);
+        // Actualizar la barra de progreso después de mover una tarea
+        updateProgressBar();
+        return result;
+      };
+    }
+    
+    // Obtener todas las tareas
+    const tasks = document.querySelectorAll('.task-card');
+    
+    // Obtener la fecha actual en formato YYYY-MM-DD
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    tasks.forEach(task => {
+      // Obtener la fecha de vencimiento de cada tarea
+      const dueDate = task.getAttribute('data-due-date');
+      
+      if (dueDate) {
+        const dueDateObj = new Date(dueDate);
+        dueDateObj.setHours(0, 0, 0, 0);
+        
+        // Comparar la fecha de vencimiento con la fecha actual
+        if (dueDateObj < today) {
+          task.classList.add('late-task');  // Agregar la clase 'late-task' si está vencida
+        } else if (dueDateObj.getTime() === today.getTime()) {
+          task.classList.add('due-today-task');  // Agregar la clase 'due-today-task' si es hoy
+        }
+      }
+    });
+    
+    // Mostrar toast de bienvenida
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('created') === 'true') {
+      showToast('{% trans_tag "Task created successfully" %}', 'success');
+    }
+    if (urlParams.get('updated') === 'true') {
+      showToast('{% trans_tag "Task updated successfully" %}', 'success');
+    }
+    
+    // Función para mostrar toast
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type} show`;
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+      
+      toast.innerHTML = `
+        <div class="toast-body">
+          ${message}
+        </div>
+      `;
+      
+      const toastContainer = document.getElementById('toastContainer');
+      toastContainer.appendChild(toast);
+      
+      // Eliminar después de 3 segundos
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toastContainer.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+/* Estilos específicos para la navegación condicional */
+
+/* Estilos para los enlaces de navegación en páginas internas */
+.navbar-nav .nav-link i {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+  }
+  
+  .navbar-nav .nav-link:hover i {
+    transform: translateY(-2px);
+  }
+  
+  /* Estilos para el menú desplegable de usuario */
+  .dropdown-menu {
+    min-width: 240px;
+  }
+  
+  /* Animación para los enlaces de navegación */
+  .nav-link {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: white;
+    transition: width 0.3s ease;
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
+  }
+  
+  /* Estilos para la navegación activa */
+  .nav-link.active {
+    font-weight: 600;
+  }
+  
+  .nav-link.active::after {
+    width: 100%;
+  }
+  
+  /* Mejoras para la navegación en dispositivos móviles */
+  @media (max-width: 991.98px) {
+    .navbar-collapse {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  
+    .nav-link {
+      padding: 0.75rem 0;
+    }
+  
+    .nav-link::after {
+      display: none;
+    }
+  
+    .nav-link.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding-left: 1rem;
+    }
+  }
+  
+  /* Estilos para el indicador de página actual */
+  .current-page-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  
+  /* Mejoras para el menú de usuario en modo oscuro */
+  [data-bs-theme="dark"] .dropdown-user-info {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+  
+  [data-bs-theme="dark"] .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Estilos para los iconos en la navegación */
+  .nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-link:hover .nav-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }  

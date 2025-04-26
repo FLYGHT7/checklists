@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Response Detail" %}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}">
+<link rel="stylesheet" href="{% static 'css/response_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Header with gradient -->
+<div class="response-detail-header">
+    <div class="container">
+        <div class="response-detail-container">
+            <div class="response-detail-header-content">
+                <div class="response-detail-badge">
+                    <i class="bi bi-clipboard-data"></i>{% trans_tag "Response Detail" %}
+                </div>
+                <h1 class="response-detail-title">{% trans_tag "Response #" %}{{ response.id }}</h1>
+                <p class="response-detail-subtitle">
+                    {% trans_tag "Viewing the response to form" %} "{{ gform.title }}" {% trans_tag "submitted" %} 
+                    <span class="datetime" data-utc="{{ response.created_at|date:'c' }}">
+                        {{ response.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                </p>
+                <div class="action-buttons">
+                    <a href="{% url 'gform_responses' form_id=gform.id %}" class="btn btn-back action-btn">
+                        <i class="bi bi-arrow-left"></i>{% trans_tag "Back to Responses" %}
+                    </a>
+                    <a href="{% url 'export_response_to_excel' response_id=response.id %}" class="btn btn-export action-btn">
+                        <i class="bi bi-file-earmark-excel"></i>{% trans_tag "Export to Excel" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="response-detail-container">
+        <!-- Response information -->
+        <div class="response-card">
+            <div class="response-header">
+                <h3><i class="bi bi-info-circle me-2"></i>{% trans_tag "Response Information" %}</h3>
+            </div>
+            <div class="response-body">
+                <div class="response-info-grid">
+                    <div class="response-info-item">
+                        <div class="response-info-icon">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="response-info-content">
+                            <div class="response-info-label">{% trans_tag "Form" %}</div>
+                            <div class="response-info-value">{{ gform.title }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="response-info-item">
+                        <div class="response-info-icon">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="response-info-content">
+                            <div class="response-info-label">{% trans_tag "Respondent" %}</div>
+                            <div class="response-info-value">
+                                {% if response.respondent %}
+                                    {{ response.respondent.username }}
+                                {% elif response.respondent_email %}
+                                    {{ response.respondent_email }}
+                                {% else %}
+                                    {% trans_tag "Anonymous" %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="response-info-item">
+                        <div class="response-info-icon">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+                        <div class="response-info-content">
+                            <div class="response-info-label">{% trans_tag "Response date" %}</div>
+                            <div class="response-info-value">
+                                <span class="datetime" data-utc="{{ response.created_at|date:'c' }}">
+                                    {{ response.created_at|date:"d/m/Y H:i" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="response-info-item">
+                        <div class="response-info-icon">
+                            <i class="bi bi-hash"></i>
+                        </div>
+                        <div class="response-info-content">
+                            <div class="response-info-label">{% trans_tag "Response ID" %}</div>
+                            <div class="response-info-value">{{ response.id }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responses to questions -->
+        <div class="response-card">
+            <div class="response-header">
+                <h3><i class="bi bi-list-check me-2"></i>{% trans_tag "Responses" %}</h3>
+            </div>
+            <div class="response-body">
+                {% for question in questions %}
+                <div class="response-item" style="--animation-order: {{ forloop.counter }}">
+                    <div class="response-question">
+                        <div class="d-flex align-items-start">
+                            <div class="response-question-badge">{{ forloop.counter }}</div>
+                            <div>
+                                <div class="response-question-text">{{ question.text }}</div>
+                                <div class="response-question-type">
+                                    <i class="bi bi-tag me-1"></i>{{ question.get_question_type_display }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if question.image %}
+                    <div class="mb-3 mt-2">
+                        <img src="{{ question.image.url }}" alt="{% trans_tag 'Image of the question' %}" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    
+                    {% if question.id in answer_dict %}
+                    {% with answer=answer_dict|get_item:question.id %}
+                    
+                    {% if question.question_type in 'short_text,paragraph,date,time,linear_scale' %}
+                    <div class="mt-3">
+                        {% if answer.text_answer %}
+                        <div class="response-answer">{{ answer.text_answer }}</div>
+                        {% else %}
+                        <div class="response-no-answer">{% trans_tag "No response" %}</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% elif question.question_type in 'multiple_choice,dropdown,checkbox' %}
+                    <div class="mt-3">
+                        {% if answer.selected_options.all %}
+                        <ul class="response-options-list">
+                            {% for selected in answer.selected_options.all %}
+                            <li class="response-option-item">
+                                <span class="response-option-icon">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </span>
+                                <span class="response-option-text">{{ selected.option.text }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="response-no-answer">{% trans_tag "No response" %}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Show attachments -->
+                    {% if answer.image or answer.video or answer.file_url %}
+                    <div class="response-attachments">
+                        <div class="response-attachments-title">
+                            <i class="bi bi-paperclip"></i>{% trans_tag "Attachments" %}
+                        </div>
+                        
+                        {% if answer.image %}
+                        <div class="response-attachment-type">
+                            <i class="bi bi-image"></i>{% trans_tag "Image" %}:
+                        </div>
+                        <div class="response-media mb-3">
+                            <img src="{{ answer.image.url }}" alt="{% trans_tag 'Attached image' %}" class="img-fluid">
+                        </div>
+                        {% endif %}
+                        
+                        {% if answer.video %}
+                        <div class="response-attachment-type">
+                            <i class="bi bi-film"></i>{% trans_tag "Video" %}:
+                        </div>
+                        <div class="response-media mb-3">
+                            <video controls class="img-fluid">
+                                <source src="{{ answer.video.url }}" type="video/mp4">
+                                {% trans_tag "Your browser does not support video playback." %}
+                            </video>
+                        </div>
+                        {% endif %}
+                        
+                        {% if answer.file_url %}
+                        <div class="response-attachment-type">
+                            <i class="bi bi-link-45deg"></i>{% trans_tag "URL" %}:
+                        </div>
+                        {% if answer.file_url|lower|endswith:'.jpg' or answer.file_url|lower|endswith:'.jpeg' or answer.file_url|lower|endswith:'.png' or answer.file_url|lower|endswith:'.gif' %}
+                        <div class="response-media mb-3">
+                            <img src="{{ answer.file_url }}" alt="{% trans_tag 'Image from URL' %}" class="img-fluid">
+                        </div>
+                        {% elif answer.file_url|lower|endswith:'.mp4' or answer.file_url|lower|endswith:'.webm' or answer.file_url|lower|endswith:'.ogg' %}
+                        <div class="response-media mb-3">
+                            <video controls class="img-fluid">
+                                <source src="{{ answer.file_url }}" type="video/mp4">
+                                {% trans_tag "Your browser does not support video playback." %}
+                            </video>
+                        </div>
+                        {% else %}
+                        <a href="{{ answer.file_url }}" target="_blank" class="response-media-link">
+                            <i class="bi bi-box-arrow-up-right"></i>{% trans_tag "View external resource" %}
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% endwith %}
+                    {% else %}
+                    <div class="response-no-answer mt-3">{% trans_tag "No response" %}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/datetime-formatter.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation for response items
+        const responseItems = document.querySelectorAll('.response-item');
+        responseItems.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.animation = `fadeIn 0.3s ease forwards ${index * 0.1}s`;
+        });
+        
+        // Animation for info items
+        const infoItems = document.querySelectorAll('.response-info-item');
+        infoItems.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.animation = `fadeIn 0.3s ease forwards ${index * 0.1}s`;
+        });
+    });
+</script>
+{% endblock %}
