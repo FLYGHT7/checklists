@@ -17,8 +17,13 @@
         <div class="welcome-header">
           <div class="welcome-content">
             <h1 class="dashboard-title">
-              {% trans_tag "Welcome" %}, {{ user.username }}
+              <span id="dashboard-greeting"
+                data-morning="{% trans_tag 'Good morning' %}"
+                data-afternoon="{% trans_tag 'Good afternoon' %}"
+                data-evening="{% trans_tag 'Good evening' %}"
+              >{% trans_tag "Welcome" %}</span>, <span class="username-highlight">{{ user.username }}</span>
             </h1>
+            <p class="welcome-date-line" id="dashboard-date" aria-live="polite"></p>
             <p class="dashboard-subtitle">
               {% trans_tag "Select a tool to start organizing your tasks" %}
             </p>
@@ -61,8 +66,7 @@
               </span>
             </div>
           </div>
-          <div class="welcome-decoration">
-            <div class="decoration-circle"></div>
+          <div class="welcome-decoration" aria-hidden="true">
             <div class="decoration-circle"></div>
             <div class="decoration-circle"></div>
           </div>
@@ -77,11 +81,16 @@
           <div class="row g-4 justify-content-center">
             <!-- Todo List Card -->
             <div class="col-md-6 col-lg-5">
-              <div class="tool-card">
-                <div class="tool-icon">
-                  <i class="bi bi-kanban" aria-hidden="true"></i>
+              <div class="tool-card todo-card">
+                <div class="tool-card-top">
+                  <div class="tool-icon">
+                    <i class="bi bi-kanban" aria-hidden="true"></i>
+                  </div>
+                  <div class="tool-card-label">
+                    <h3>{% trans_tag "Todo List" %}</h3>
+                    <span class="tool-card-caption">{% trans_tag "Task Management" %}</span>
+                  </div>
                 </div>
-                <h3>{% trans_tag "Todo List" %}</h3>
                 <p>
                   {% trans_tag "Organize your tasks in columns and drag to change their status." %}
                 </p>
@@ -107,11 +116,16 @@
 
             <!-- Formulario Dinámico Card -->
             <div class="col-md-6 col-lg-5">
-              <div class="tool-card">
-                <div class="tool-icon">
-                  <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+              <div class="tool-card form-card">
+                <div class="tool-card-top">
+                  <div class="tool-icon form-icon">
+                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                  </div>
+                  <div class="tool-card-label">
+                    <h3>{% trans_tag "Dynamic Form" %}</h3>
+                    <span class="tool-card-caption">{% trans_tag "Data Collection" %}</span>
+                  </div>
                 </div>
-                <h3>{% trans_tag "Dynamic Form" %}</h3>
                 <p>
                   {% trans_tag "Create custom forms with different types of questions and upload evidence." %}
                 </p>
@@ -160,9 +174,6 @@
           <div class="recent-section-content">
             {% if recent_todo_lists %}
             <div class="scrollable-cards-container" id="todoListsContainer">
-              <div class="scroll-indicator" id="todoListsScrollIndicator">
-                <i class="bi bi-arrow-right"></i>
-              </div>
               {% for todo_list in recent_todo_lists %}
               <div class="modern-card" data-list-id="{{ todo_list.id }}">
                 <div class="modern-card-left">
@@ -306,9 +317,6 @@
           <div class="recent-section-content">
             {% if forms %}
             <div class="scrollable-cards-container" id="formsContainer">
-              <div class="scroll-indicator" id="formsScrollIndicator">
-                <i class="bi bi-arrow-right"></i>
-              </div>
               {% for form in forms %}
               <div class="modern-card">
                 <div class="modern-card-left">
@@ -433,15 +441,7 @@
                     {{ todo_lists_count }}
                   </h3>
                   <p class="stat-card-text">{% trans_tag "Todo Lists" %}</p>
-                  <div class="stat-progress">
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-primary"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </div>
+                  <div class="stat-accent-bar bg-primary"></div>
                 </div>
               </div>
             </div>
@@ -455,17 +455,9 @@
                     {{ completed_tasks_count }}
                   </h3>
                   <p class="stat-card-text">
-                    {% trans_tag "Completed Tasks" %}
-                  </p>
-                  <div class="stat-progress">
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-success"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </div>
+                      {% trans_tag "Completed Tasks" %}
+                    </p>
+                  <div class="stat-accent-bar bg-success"></div>
                 </div>
               </div>
             </div>
@@ -479,15 +471,7 @@
                     {{ forms_count }}
                   </h3>
                   <p class="stat-card-text">{% trans_tag "Forms" %}</p>
-                  <div class="stat-progress">
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-info"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </div>
+                  <div class="stat-accent-bar bg-info"></div>
                 </div>
               </div>
             </div>
@@ -501,17 +485,9 @@
                     {{ total_responses }}
                   </h3>
                   <p class="stat-card-text">
-                    {% trans_tag "Responses Received" %}
-                  </p>
-                  <div class="stat-progress">
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-warning"
-                        role="progressbar"
-                        style="width: 100%"
-                      ></div>
-                    </div>
-                  </div>
+                      {% trans_tag "Responses Received" %}
+                    </p>
+                  <div class="stat-accent-bar bg-warning"></div>
                 </div>
               </div>
             </div>
@@ -525,4 +501,41 @@
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/dashboard.js' %}"></script>
+<!-- Stat count-up animation -->
+<script>
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  function countUp(el) {
+    var target = parseInt(el.textContent.trim(), 10);
+    if (!isFinite(target) || target === 0) return;
+    var duration = 800;
+    var start = performance.now();
+    function step(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      // ease out quad
+      var eased = 1 - (1 - progress) * (1 - progress);
+      el.textContent = Math.round(eased * target);
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    el.textContent = '0';
+    requestAnimationFrame(step);
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        countUp(e.target);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.stat-card-title').forEach(function (el) {
+    observer.observe(el);
+  });
+}());
+</script>
 {% endblock %}

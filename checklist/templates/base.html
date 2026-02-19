@@ -6,8 +6,15 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <meta name="description" content="{% trans_tag 'DragTask - Organize your tasks with intuitive drag and drop interfaces. Create dynamic forms, checklists, and to-do lists.' %}">
+ <meta name="theme-color" content="#6366f1">
+ <!-- Open Graph -->
+ <meta property="og:type" content="website">
+ <meta property="og:title" content="{% block og_title %}DragTask - Organize with Drag & Drop{% endblock %}">
+ <meta property="og:description" content="{% trans_tag 'Organize your tasks with intuitive drag and drop interfaces. Create dynamic forms, checklists, and to-do lists.' %}">
  <title>{% block title %}{% trans_tag 'DragTask - Organize with Drag & Drop' %}{% endblock %}</title>
- 
+ <!-- Anti-FOUC: apply saved theme before CSS renders -->
+ <script>(function(){var t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-bs-theme',t);}}());</script>
+
  <!-- Preconnect to external domains -->
  <link rel="preconnect" href="https://cdn.jsdelivr.net">
  <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,12 +39,12 @@
      min-height: 100vh;
    }
    .header {
-     background: linear-gradient(135deg, #00aaff, #0099cc);
+     background: linear-gradient(135deg, #4f46e5, #6366f1);
      color: #ffffff;
      border-bottom: 2px solid rgba(0, 0, 0, 0.1);
    }
    [data-bs-theme="dark"] .header {
-     background: linear-gradient(135deg, #2d3748, #1e293b);
+     background: linear-gradient(135deg, #1e1b4b, #312e81);
      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
    }
    .navbar-brand {
@@ -133,6 +140,8 @@
  
  <!-- Page Specific CSS -->
  {% block styles %}{% endblock %}
+ <!-- Extra head block for page-specific meta/links -->
+ {% block extra_head %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
  <!-- Debug info -->
@@ -296,7 +305,7 @@
            {% else %}
              <!-- Login/Register Buttons -->
              <div class="d-flex flex-column flex-lg-row gap-2">
-               <a href="{% url 'login' %}" class="btn btn-primary">{% trans_tag "Log in" %}</a>
+               <a href="{% url 'login' %}" class="btn btn-outline-light">{% trans_tag "Log in" %}</a>
                <a href="{% url 'register' %}" class="btn btn-primary">{% trans_tag "Sign Up" %}</a>
              </div>
            {% endif %}
@@ -352,9 +361,10 @@
          </div>
          <p>{% trans_tag "Organize your tasks with intuitive drag and drop." %}</p>
          <div class="social-links">
-           <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
-           <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x" aria-hidden="true"></i></a>
-           <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+           <a href="https://github.com/FLYGHT7" aria-label="GitHub" target="_blank" rel="noopener noreferrer"><i class="bi bi-github" aria-hidden="true"></i></a>
+           <a href="https://www.facebook.com/FLYGHT7/" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="bi bi-facebook" aria-hidden="true"></i></a>
+           <a href="https://x.com/_flyght7" aria-label="Twitter/X" target="_blank" rel="noopener noreferrer"><i class="bi bi-twitter-x" aria-hidden="true"></i></a>
+           <a href="https://www.instagram.com/FLYGHT7/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram" aria-hidden="true"></i></a>
            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin" aria-hidden="true"></i></a>
          </div>
        </div>
@@ -410,62 +420,15 @@
  <!-- Dark Mode JS -->
  <script src="{% static 'js/darkmode-toggle.js' %}"></script>
  
- <!-- Script para mantener el tema al recargar o redirigir -->
- <script>
-   // Apply saved theme immediately to prevent flash of wrong theme
-   (function() {
-     const savedTheme = localStorage.getItem("theme");
-     if (savedTheme) {
-       document.documentElement.setAttribute("data-bs-theme", savedTheme);
-     }
-   })();
-   
-   // Full theme initialization after DOM is loaded
-   window.addEventListener("DOMContentLoaded", () => {
-     const savedTheme = localStorage.getItem("theme");
-     if (savedTheme) {
-       // Update icons based on theme
-       const icons = [document.getElementById("toggle-icon"), document.getElementById("toggle-icon-mobile")];
-       
-       icons.forEach(icon => {
-         if (icon) {
-           if (savedTheme === "dark") {
-             icon.classList.remove("bi-moon-fill");
-             icon.classList.add("bi-sun-fill");
-           } else {
-             icon.classList.remove("bi-sun-fill");
-             icon.classList.add("bi-moon-fill");
-           }
-         }
-       });
-     }
-   });
- </script>
- 
- <!-- Script para depurar el cambio de idioma -->
+ {% if debug %}
+ <!-- Debug: language info -->
  <script>
    document.addEventListener('DOMContentLoaded', function() {
-     // Mostrar información de depuración en la consola
-     console.log('Current language code:', '{{ LANGUAGE_CODE }}');
-     
-     // Añadir event listeners a los formularios de cambio de idioma
-     const langFormEs = document.getElementById('language-form-es');
-     const langFormEn = document.getElementById('language-form-en');
-     
-     if (langFormEs) {
-       langFormEs.addEventListener('submit', function() {
-         console.log('Changing language to ES');
-       });
-     }
-     
-     if (langFormEn) {
-       langFormEn.addEventListener('submit', function() {
-         console.log('Changing language to EN');
-       });
-     }
+     console.log('[DragTask debug] LANGUAGE_CODE:', '{{ LANGUAGE_CODE }}');
    });
  </script>
- 
+ {% endif %}
+
  <!-- Page Specific Scripts -->
  {% block scripts %}{% endblock %}
 </body>

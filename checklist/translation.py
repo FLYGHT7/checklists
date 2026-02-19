@@ -140,6 +140,11 @@ TRANSLATIONS_ES = {
     # Dashboard template translations
     "Dashboard": "Panel de Control",
     "Welcome": "Bienvenido",
+    "Good morning": "Buenos días",
+    "Good afternoon": "Buenas tardes",
+    "Good evening": "Buenas noches",
+    "Task Management": "Gestión de Tareas",
+    "Data Collection": "Recopilación de Datos",
     "Select a tool to start organizing your tasks": "Selecciona una herramienta para comenzar a organizar tus tareas",
     "Todo List": "Todo List",
     "Organize your tasks in columns and drag to change their status.": "Organiza tus tareas en columnas y arrastra para cambiar su estado.",

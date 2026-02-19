@@ -163,14 +163,14 @@
 <!-- Features Section -->
 <section id="features" class="features py-5">
   <div class="container">
-    <div class="text-center mb-5">
+    <div class="text-center mb-5 reveal">
       <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "Features" %}</span>
       <h2 class="display-5 fw-bold">{% trans_tag "Everything you need to stay organized" %}</h2>
       <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Our platform offers powerful features to help you manage tasks, create forms, and organize your work efficiently." %}</p>
     </div>
     <div class="row g-4">
       <div class="col-md-4">
-        <div class="feature-card">
+        <div class="feature-card reveal">
           <div class="feature-icon">
             <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
           </div>
@@ -179,7 +179,7 @@
         </div>
       </div>
       <div class="col-md-4">
-        <div class="feature-card">
+        <div class="feature-card reveal reveal-delay-1">
           <div class="feature-icon">
             <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
           </div>
@@ -188,7 +188,7 @@
         </div>
       </div>
       <div class="col-md-4">
-        <div class="feature-card">
+        <div class="feature-card reveal reveal-delay-2">
           <div class="feature-icon">
             <i class="bi bi-people-fill" aria-hidden="true"></i>
           </div>
@@ -203,7 +203,7 @@
 <!-- How It Works Section -->
 <section id="how-it-works" class="how-it-works py-5">
   <div class="container">
-    <div class="text-center mb-5">
+    <div class="text-center mb-5 reveal">
       <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "How It Works" %}</span>
       <h2 class="display-5 fw-bold">{% trans_tag "Simple, intuitive, and powerful" %}</h2>
       <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Get started in minutes and transform the way you organize your tasks and projects." %}</p>
@@ -211,11 +211,12 @@
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
         <!-- Use a placeholder initially and load the real image when visible -->
-        <div class="demo-image-container">
+        <div class="demo-image-container reveal">
           <img 
             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' style='background:%236366F1;'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='24' fill='white'%3EDragTask Demo%3C/text%3E%3C/svg%3E" 
             data-src="https://placehold.co/600x400/6366F1/FFFFFF?text=DragTask+Demo" 
             class="img-fluid rounded-4 shadow-lg lazy-image" 
+            loading="lazy"
             alt="{% trans_tag 'DragTask interface demonstration' %}"
             width="600" 
             height="400">
@@ -223,21 +224,21 @@
       </div>
       <div class="col-lg-6">
         <div class="steps">
-          <div class="step-item">
+          <div class="step-item reveal">
             <div class="step-number">1</div>
             <div class="step-content">
               <h3>{% trans_tag "Create your lists" %}</h3>
               <p>{% trans_tag "Start by creating custom lists for different projects, areas of responsibility, or types of tasks." %}</p>
             </div>
           </div>
-          <div class="step-item">
+          <div class="step-item reveal reveal-delay-1">
             <div class="step-number">2</div>
             <div class="step-content">
               <h3>{% trans_tag "Add and organize tasks" %}</h3>
               <p>{% trans_tag "Add tasks to your lists and organize them by dragging and dropping them into the right categories." %}</p>
             </div>
           </div>
-          <div class="step-item">
+          <div class="step-item reveal reveal-delay-2">
             <div class="step-number">3</div>
             <div class="step-content">
               <h3>{% trans_tag "Track your progress" %}</h3>
@@ -253,14 +254,14 @@
 <!-- Pricing Section -->
 <section id="pricing" class="pricing py-5">
   <div class="container">
-    <div class="text-center mb-5">
+    <div class="text-center mb-5 reveal">
       <span class="badge rounded-pill text-bg-primary mb-3">{% trans_tag "Pricing" %}</span>
       <h2 class="display-5 fw-bold">{% trans_tag "Simple, transparent pricing" %}</h2>
       <p class="lead mx-auto" style="max-width: 700px;">{% trans_tag "Choose the plan that's right for you and start organizing your tasks today." %}</p>
     </div>
     <div class="row g-4">
       <div class="col-lg-4">
-        <div class="pricing-card">
+        <div class="pricing-card reveal">
           <div class="pricing-header">
             <h3>{% trans_tag "Free" %}</h3>
             <p>{% trans_tag "Perfect for individuals just getting started." %}</p>
@@ -280,7 +281,7 @@
         </div>
       </div>
       <div class="col-lg-4">
-        <div class="pricing-card popular">
+        <div class="pricing-card popular reveal reveal-delay-1">
           <div class="popular-badge">{% trans_tag "Most Popular" %}</div>
           <div class="pricing-header">
             <h3>{% trans_tag "Pro" %}</h3>
@@ -302,7 +303,7 @@
         </div>
       </div>
       <div class="col-lg-4">
-        <div class="pricing-card">
+        <div class="pricing-card reveal reveal-delay-2">
           <div class="pricing-header">
             <h3>{% trans_tag "Enterprise" %}</h3>
             <p>{% trans_tag "Perfect for large teams and organizations." %}</p>
@@ -330,8 +331,8 @@
 <!-- CTA Section -->
 <section class="cta py-5">
   <div class="container text-center">
-    <h2 class="display-5 fw-bold mb-4">{% trans_tag "Ready to transform the way you organize your tasks?" %}</h2>
-    <p class="lead mb-5 mx-auto" style="max-width: 600px;">{% trans_tag "Join thousands of users who have already improved their productivity with DragTask." %}</p>
+    <h2 class="display-5 fw-bold mb-4 reveal">{% trans_tag "Ready to transform the way you organize your tasks?" %}</h2>
+    <p class="lead mb-5 mx-auto reveal reveal-delay-1" style="max-width: 600px;">{% trans_tag "Join thousands of users who have already improved their productivity with DragTask." %}</p>
     <div class="row justify-content-center">
       <div class="col-md-6">
         <form class="cta-form" id="signup-form">
@@ -393,14 +394,14 @@
     if (demoModal) {
       demoModal.addEventListener('show.bs.modal', function () {
         const videoContainer = document.getElementById('video-container');
+        // TODO: replace with actual demo video URL
         videoContainer.innerHTML = `
-          <iframe 
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0" 
-            title="DragTask Demo Video" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-          </iframe>
+          <div class="d-flex align-items-center justify-content-center h-100 text-center p-4">
+            <div>
+              <i class="bi bi-play-circle display-1 text-primary mb-3 d-block"></i>
+              <p class="lead mb-0">{% trans_tag 'Demo video coming soon' %}</p>
+            </div>
+          </div>
         `;
       });
       
@@ -414,18 +415,8 @@
     if (signupForm) {
       signupForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const submitText = document.getElementById('submit-text');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        
-        // Show loading state
-        submitText.textContent = '{% trans_tag "Processing..." %}';
-        loadingSpinner.classList.remove('d-none');
-        
-        // Simulate form submission
-        setTimeout(() => {
-          window.location.href = "{% url 'register' %}";
-        }, 1000);
+        const emailVal = encodeURIComponent(signupForm.querySelector('input[type="email"]').value);
+        window.location.href = "{% url 'register' %}?email=" + emailVal;
       });
     }
     
@@ -440,6 +431,25 @@
   });
 </script>
 
+<!-- Scroll reveal -->
+<script>
+(function () {
+  var els = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('revealed');
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    els.forEach(function (el) { obs.observe(el); });
+  } else {
+    els.forEach(function (el) { el.classList.add('revealed'); });
+  }
+}());
+</script>
 <!-- Load the demo script -->
 <script src="{% static 'js/demo-hero.js' %}"></script>
 {% endblock %}

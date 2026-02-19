@@ -41,7 +41,7 @@ class DashboardManager {
     // Diferir la inicialización completa para después de la carga inicial
     this.deferInitialization();
 
-    console.log("Dashboard inicializado en modo optimizado");
+    // Removed verbose logs — use browser devtools Network tab to debug
   }
 
   /**
@@ -59,7 +59,6 @@ class DashboardManager {
     // Escuchar cambios en localStorage (comunicación entre páginas)
     window.addEventListener("storage", (event) => {
       if (event.key === this.config.storageKey && this.isInitialized) {
-        console.log("Detectado cambio en tareas, actualizando dashboard");
         this.updateDashboardStats();
       }
     });
@@ -87,6 +86,8 @@ class DashboardManager {
    * Completa la inicialización después de la carga inicial
    */
   completeInitialization() {
+    this.setDynamicGreeting();
+    this.setCurrentDate();
     this.setupScrollIndicators();
     this.syncAllProgressBars();
 
@@ -95,8 +96,36 @@ class DashboardManager {
 
     // Actualizar estadísticas iniciales
     this.updateDashboardStats();
+  }
 
-    console.log("Inicialización completa del dashboard");
+  /**
+   * Sets a time-based greeting in the welcome header
+   */
+  setDynamicGreeting() {
+    const el = document.getElementById("dashboard-greeting");
+    if (!el) return;
+    const hour = new Date().getHours();
+    const greeting =
+      hour < 12
+        ? el.dataset.morning
+        : hour < 18
+          ? el.dataset.afternoon
+          : el.dataset.evening;
+    if (greeting) el.textContent = greeting;
+  }
+
+  /**
+   * Renders the current date in the welcome header
+   */
+  setCurrentDate() {
+    const el = document.getElementById("dashboard-date");
+    if (!el) return;
+    el.textContent = new Date().toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   }
 
   /**
@@ -163,8 +192,6 @@ class DashboardManager {
    * Actualiza las estadísticas del dashboard con priorización
    */
   async updateDashboardStats() {
-    console.log("Actualizando estadísticas del dashboard");
-
     const todoLists = document.querySelectorAll(
       this.config.selectors.todoLists,
     );
@@ -371,6 +398,21 @@ class DashboardManager {
     }
 
     if (progressBar) {
+      // Remove old color classes and apply semantic one
+      progressBar.classList.remove(
+        "progress-low",
+        "progress-medium",
+        "progress-high",
+      );
+      if (safePercent > 0) {
+        progressBar.classList.add(
+          safePercent < 50
+            ? "progress-low"
+            : safePercent < 80
+              ? "progress-medium"
+              : "progress-high",
+        );
+      }
       progressBar.style.width = `${safePercent}%`;
       progressBar.setAttribute("data-progress", String(safePercent));
     }

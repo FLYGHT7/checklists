@@ -10,6 +10,16 @@
   --border-radius: 12px;
 }
 
+/* Smooth scroll for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset anchor targets for the sticky header (~76px tall) */
+section[id] {
+  scroll-margin-top: 76px;
+}
+
 /* Estilos generales */
 body {
   font-family: "Poppins", sans-serif;
@@ -29,7 +39,10 @@ body {
   border: none;
   background: #4f46e5;
   color: #ffffff;
-  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    transform 0.2s;
 }
 
 [data-bs-theme="dark"] #dark-mode-toggle,
@@ -60,13 +73,13 @@ body {
 
 /* Header */
 .header {
-  background: linear-gradient(135deg, #00aaff, #0099cc);
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
   color: #ffffff;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 [data-bs-theme="dark"] .header {
-  background: linear-gradient(135deg, #2d3748, #1e293b);
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
   border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   color: #e2e8f0;
 }
@@ -104,7 +117,7 @@ body {
 /* Buttons */
 .btn {
   border-radius: 8px;
-  padding: 0.5rem 0.2rem;
+  padding: 0.5rem 1rem;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -362,7 +375,7 @@ body {
 /* Responsive Adjustments */
 @media (max-width: 991.98px) {
   .navbar-collapse {
-    background-color: rgba(0, 170, 255, 0.95);
+    background-color: rgba(79, 70, 229, 0.97);
     padding: 1rem;
     border-radius: var(--border-radius);
     margin-top: 0.5rem;
@@ -371,7 +384,7 @@ body {
   }
 
   [data-bs-theme="dark"] .navbar-collapse {
-    background-color: rgba(45, 55, 72, 0.95);
+    background-color: rgba(30, 27, 75, 0.97);
   }
 
   .nav-link {
