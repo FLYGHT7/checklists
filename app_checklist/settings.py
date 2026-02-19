@@ -151,8 +151,7 @@ LANGUAGES = [
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'checklist', 'static'),]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Configuración para finders de archivos estáticos (sin compressor)
 STATICFILES_FINDERS = [
@@ -162,7 +161,14 @@ STATICFILES_FINDERS = [
 ]
 
 # Configuración optimizada para WhiteNoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Configuración adicional para WhiteNoise
 WHITENOISE_MAX_AGE = 604800  # 7 días en segundos
