@@ -5,16 +5,18 @@
 // Configuración
 const CONFIG = {
   updateInterval: 120000, // Actualizar cada 2 minutos para reducir carga
-  apiEndpoint: '/todo_list/',
-  statsEndpoint: '/todo_list/{id}/stats/',
+  apiEndpoint: "/todo_list/",
+  statsEndpoint: "/todo_list/{id}/stats/",
   selectors: {
-    todoLists: '.modern-card[data-list-id]',
-    totalCompleted: '#total-completed-tasks',
-    taskTotal: '.stat-pill:nth-child(1) .stat-value',
-    taskTodo: '.stat-pill:nth-child(2) .stat-value',
-    taskDone: '.stat-pill:nth-child(3) .stat-value'
+    todoLists: ".modern-card[data-list-id]",
+    totalCompleted: "#total-completed-tasks",
+    taskTotal: ".stat-pill:nth-child(1) .stat-value",
+    taskTodo: ".stat-pill:nth-child(2) .stat-value",
+    taskDone: ".stat-pill:nth-child(3) .stat-value",
+    listProgress: ".progress.list-progress",
+    listProgressBar: ".progress-bar.list-progress-bar",
   },
-  storageKey: 'taskStatusChanged'
+  storageKey: "taskStatusChanged",
 };
 
 // Clase para gestionar el dashboard
@@ -32,14 +34,14 @@ class DashboardManager {
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
-    
+
     // Inicializar eventos básicos inmediatamente
     this.setupBasicEventListeners();
-    
+
     // Diferir la inicialización completa para después de la carga inicial
     this.deferInitialization();
-    
-    console.log('Dashboard inicializado en modo optimizado');
+
+    console.log("Dashboard inicializado en modo optimizado");
   }
 
   /**
@@ -47,17 +49,17 @@ class DashboardManager {
    */
   setupBasicEventListeners() {
     // Actualizar cuando la página vuelve a estar activa
-    document.addEventListener('visibilitychange', () => {
-      this.isPageVisible = document.visibilityState === 'visible';
+    document.addEventListener("visibilitychange", () => {
+      this.isPageVisible = document.visibilityState === "visible";
       if (this.isPageVisible && this.isInitialized) {
         this.updateDashboardStats();
       }
     });
 
     // Escuchar cambios en localStorage (comunicación entre páginas)
-    window.addEventListener('storage', (event) => {
+    window.addEventListener("storage", (event) => {
       if (event.key === this.config.storageKey && this.isInitialized) {
-        console.log('Detectado cambio en tareas, actualizando dashboard');
+        console.log("Detectado cambio en tareas, actualizando dashboard");
         this.updateDashboardStats();
       }
     });
@@ -68,15 +70,15 @@ class DashboardManager {
    */
   deferInitialization() {
     // Usar requestIdleCallback si está disponible, o setTimeout como fallback
-    const scheduleInit = window.requestIdleCallback || 
-      ((cb) => setTimeout(cb, 1000)); // 1 segundo después de la carga
-    
+    const scheduleInit =
+      window.requestIdleCallback || ((cb) => setTimeout(cb, 1000)); // 1 segundo después de la carga
+
     scheduleInit(() => {
       // Actualizar estadísticas después de que la página esté completamente cargada
-      if (document.readyState === 'complete') {
+      if (document.readyState === "complete") {
         this.completeInitialization();
       } else {
-        window.addEventListener('load', () => this.completeInitialization());
+        window.addEventListener("load", () => this.completeInitialization());
       }
     });
   }
@@ -85,13 +87,59 @@ class DashboardManager {
    * Completa la inicialización después de la carga inicial
    */
   completeInitialization() {
+    this.setupScrollIndicators();
+    this.syncAllProgressBars();
+
     // Configurar intervalo de actualización
     this.setupUpdateInterval();
-    
+
     // Actualizar estadísticas iniciales
     this.updateDashboardStats();
-    
-    console.log('Inicialización completa del dashboard');
+
+    console.log("Inicialización completa del dashboard");
+  }
+
+  /**
+   * Configura y actualiza los indicadores de scroll horizontal
+   */
+  setupScrollIndicators() {
+    const checkForHorizontalScroll = (containerId, indicatorId) => {
+      const container = document.getElementById(containerId);
+      const indicator = document.getElementById(indicatorId);
+
+      if (!container || !indicator) {
+        return;
+      }
+
+      if (container.scrollWidth > container.clientWidth) {
+        indicator.style.display = container.scrollLeft > 20 ? "none" : "flex";
+      } else {
+        indicator.style.display = "none";
+      }
+    };
+
+    const updateAllIndicators = () => {
+      checkForHorizontalScroll(
+        "todoListsContainer",
+        "todoListsScrollIndicator",
+      );
+      checkForHorizontalScroll("formsContainer", "formsScrollIndicator");
+    };
+
+    ["todoListsContainer", "formsContainer"].forEach((containerId) => {
+      const container = document.getElementById(containerId);
+      if (!container || container.dataset.scrollBound === "true") {
+        return;
+      }
+
+      container.dataset.scrollBound = "true";
+      container.addEventListener("scroll", updateAllIndicators, {
+        passive: true,
+      });
+    });
+
+    window.addEventListener("resize", updateAllIndicators, { passive: true });
+    updateAllIndicators();
   }
 
   /**
@@ -102,7 +150,7 @@ class DashboardManager {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
     }
-    
+
     // Crear nuevo intervalo que solo actualiza si la página está visible
     this.updateInterval = setInterval(() => {
       if (this.isPageVisible) {
@@ -115,48 +163,52 @@ class DashboardManager {
    * Actualiza las estadísticas del dashboard con priorización
    */
   async updateDashboardStats() {
-    console.log('Actualizando estadísticas del dashboard');
-    
-    const todoLists = document.querySelectorAll(this.config.selectors.todoLists);
-    
+    console.log("Actualizando estadísticas del dashboard");
+
+    const todoLists = document.querySelectorAll(
+      this.config.selectors.todoLists,
+    );
+
     // Si no hay listas en el dashboard, no hacer nada
     if (todoLists.length === 0) {
       return;
     }
-    
+
     let totalCompletedTasks = 0;
     const updatePromises = [];
 
     // Preparar actualizaciones para cada lista visible primero
     todoLists.forEach((list) => {
-      const listId = list.getAttribute('data-list-id');
+      const listId = list.getAttribute("data-list-id");
       if (!listId) return;
-      
+
       // Verificar si la lista está en el viewport
       const isVisible = this.isElementInViewport(list);
-      
+
       const promise = this.updateListStats(list, listId, isVisible)
-        .then(doneCount => {
+        .then((doneCount) => {
           totalCompletedTasks += doneCount;
         })
-        .catch(error => {
+        .catch((error) => {
           console.error(`Error al actualizar lista ${listId}:`, error);
         });
-      
+
       updatePromises.push(promise);
     });
 
     // Esperar a que todas las actualizaciones terminen
     try {
       await Promise.allSettled(updatePromises);
-      
+
       // Actualizar el contador global de tareas completadas
-      const totalCompletedElement = document.querySelector(this.config.selectors.totalCompleted);
+      const totalCompletedElement = document.querySelector(
+        this.config.selectors.totalCompleted,
+      );
       if (totalCompletedElement) {
         totalCompletedElement.textContent = totalCompletedTasks;
       }
     } catch (error) {
-      console.error('Error al actualizar estadísticas:', error);
+      console.error("Error al actualizar estadísticas:", error);
     }
   }
 
@@ -170,7 +222,8 @@ class DashboardManager {
     return (
       rect.top >= 0 &&
       rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.bottom <=
+        (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
   }
@@ -186,18 +239,18 @@ class DashboardManager {
     // Priorizar listas visibles
     if (!isVisible) {
       // Retrasar la actualización de listas no visibles
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    
+
     try {
       // Usar el endpoint específico de estadísticas
-      const statsEndpoint = this.config.statsEndpoint.replace('{id}', listId);
+      const statsEndpoint = this.config.statsEndpoint.replace("{id}", listId);
       const response = await fetch(statsEndpoint, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        }
+          "X-Requested-With": "XMLHttpRequest",
+          Accept: "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -211,13 +264,13 @@ class DashboardManager {
       this.updateListCounters(listElement, {
         total: data.total || 0,
         todo: data.todo || 0,
-        done: data.done || 0
+        done: data.done || 0,
       });
 
       return data.done || 0;
     } catch (error) {
       console.error(`Error al obtener datos para lista ${listId}:`, error);
-      
+
       // Como fallback, obtener datos del DOM
       return this.getStatsFromDOM(listElement);
     }
@@ -229,13 +282,102 @@ class DashboardManager {
    * @param {Object} stats - Estadísticas a actualizar
    */
   updateListCounters(listElement, stats) {
-    const totalElement = listElement.querySelector(this.config.selectors.taskTotal);
-    const todoElement = listElement.querySelector(this.config.selectors.taskTodo);
-    const doneElement = listElement.querySelector(this.config.selectors.taskDone);
-    
+    const totalElement = listElement.querySelector(
+      this.config.selectors.taskTotal,
+    );
+    const todoElement = listElement.querySelector(
+      this.config.selectors.taskTodo,
+    );
+    const doneElement = listElement.querySelector(
+      this.config.selectors.taskDone,
+    );
+
     if (totalElement) totalElement.textContent = stats.total;
     if (todoElement) todoElement.textContent = stats.todo;
     if (doneElement) doneElement.textContent = stats.done;
+
+    this.updateListProgress(listElement, stats);
+  }
+
+  /**
+   * Sincroniza todas las barras de progreso con sus valores actuales
+   */
+  syncAllProgressBars() {
+    const listCards = document.querySelectorAll(
+      this.config.selectors.todoLists,
+    );
+    listCards.forEach((listElement) => {
+      const progressElement = listElement.querySelector(
+        this.config.selectors.listProgress,
+      );
+      const totalElement = listElement.querySelector(
+        this.config.selectors.taskTotal,
+      );
+      const doneElement = listElement.querySelector(
+        this.config.selectors.taskDone,
+      );
+
+      const ariaValue = parseInt(
+        progressElement?.getAttribute("aria-valuenow") || "0",
+        10,
+      );
+      const total = parseInt(totalElement?.textContent || "0", 10);
+      const done = parseInt(doneElement?.textContent || "0", 10);
+
+      const percent = Number.isFinite(ariaValue)
+        ? ariaValue
+        : total > 0
+          ? Math.round((done / total) * 100)
+          : 0;
+
+      this.setProgressValue(listElement, percent);
+    });
+  }
+
+  /**
+   * Actualiza barra/valor de progreso para una lista
+   * @param {HTMLElement} listElement - Elemento DOM de la lista
+   * @param {{total:number,todo:number,done:number}} stats - Estadísticas actualizadas
+   */
+  updateListProgress(listElement, stats) {
+    const percent =
+      stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+    this.setProgressValue(listElement, percent);
+  }
+
+  /**
+   * Aplica un porcentaje de progreso a los elementos visuales
+   * @param {HTMLElement} listElement - Elemento DOM de la lista
+   * @param {number} percent - Porcentaje de 0 a 100
+   */
+  setProgressValue(listElement, percent) {
+    const safePercent = Math.max(
+      0,
+      Math.min(100, Number.isFinite(percent) ? percent : 0),
+    );
+
+    const progressElement = listElement.querySelector(
+      this.config.selectors.listProgress,
+    );
+    const progressBar = listElement.querySelector(
+      this.config.selectors.listProgressBar,
+    );
+    const progressText = listElement.querySelector(
+      ".list-progress-meta strong",
+    );
+
+    if (progressElement) {
+      progressElement.setAttribute("aria-valuenow", String(safePercent));
+    }
+
+    if (progressBar) {
+      progressBar.style.width = `${safePercent}%`;
+      progressBar.setAttribute("data-progress", String(safePercent));
+    }
+
+    if (progressText) {
+      progressText.textContent = `${safePercent}%`;
+    }
   }
 
   /**
@@ -244,7 +386,9 @@ class DashboardManager {
    * @returns {number} - Número de tareas completadas
    */
   getStatsFromDOM(listElement) {
-    const doneElement = listElement.querySelector(this.config.selectors.taskDone);
+    const doneElement = listElement.querySelector(
+      this.config.selectors.taskDone,
+    );
     return doneElement ? parseInt(doneElement.textContent, 10) || 0 : 0;
   }
 }
@@ -261,7 +405,7 @@ function notifyTaskStatusChanged() {
 window.notifyTaskStatusChanged = notifyTaskStatusChanged;
 
 // Inicializar el dashboard cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   // Inicializar con carga diferida para mejorar el tiempo de carga inicial
   const dashboardManager = new DashboardManager(CONFIG);
   dashboardManager.init();

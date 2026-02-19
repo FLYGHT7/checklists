@@ -6,9 +6,11 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 *.env
 *.DS_Store
 *.swp
+.env.example
 
 # Archivos de configuración sensibles
 .env
@@ -38,6 +40,13 @@ build/
 .idea/
 *.sublime-project
 *.sublime-workspace
+.prettierignore
+
+# Configuración local de asistentes/skills
+.agent/
+.agents/
+.claude/
+.cursor/
 
 # Archivos de despliegue
 *.bak
