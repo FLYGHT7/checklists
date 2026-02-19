@@ -166,12 +166,14 @@ STORAGES = {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
 }
 
 # Configuración adicional para WhiteNoise
 WHITENOISE_MAX_AGE = 604800  # 7 días en segundos
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_USE_FINDERS = True
 WHITENOISE_MIMETYPES = {
     'application/font-woff': 'application/octet-stream',
     'application/font-woff2': 'application/octet-stream',
