@@ -178,8 +178,7 @@
                       >
                     </h5>
                     <span class="modern-card-date">
-                      <i class="bi bi-calendar3" aria-hidden="true"></i> {{
-                      todo_list.created_at|date:"d/m/Y" }}
+                      <i class="bi bi-calendar3" aria-hidden="true"></i> {{ todo_list.created_at|date:"d/m/Y" }}
                     </span>
                   </div>
                   <div class="modern-card-body">
@@ -227,8 +226,7 @@
                         >
                       </div>
                     </div>
-                    {% widthratio todo_list.done_count todo_list.total_tasks 100
-                    as completion_percent %}
+                    {% widthratio todo_list.done_count todo_list.total_tasks 100 as completion_percent %}
                     <div class="list-progress-wrapper" aria-label="Progress">
                       <div class="list-progress-meta">
                         <span>{% trans_tag "Progress" %}</span>
@@ -327,8 +325,7 @@
                     </h5>
                     <div class="d-flex align-items-center gap-2">
                       <span class="modern-card-date">
-                        <i class="bi bi-calendar3" aria-hidden="true"></i> {{
-                        form.created_at|date:"d/m/Y" }}
+                        <i class="bi bi-calendar3" aria-hidden="true"></i> {{ form.created_at|date:"d/m/Y" }}
                       </span>
                       {% if form.is_published %}
                       <span class="status-badge published"
