@@ -30,17 +30,28 @@ Note: This code is in development and provided as is, it may contain errors and 
 4. Update `.env` values:
    - `SECRET_KEY`: required.
    - `ENVIRONMENT`: use `development` for local work.
-   - `DATABASE_URL`: required by current settings (project is currently configured to use Postgres locally).
+   - `DATABASE_URL`: required when using Postgres.
+   - `POSTGRES_LOCALLY`: set `True` only if you want Postgres in local development.
 
    Example local `DATABASE_URL`:
 
-   ```
+   ```text
    postgres://postgres:postgres@localhost:5432/checklists
    ```
 
-5. Run migrations and start server:
+## Render deployment (recommended)
 
-   ```bash
-   python manage.py migrate
-   python manage.py runserver
-   ```
+- `Start Command`: `gunicorn app_checklist.wsgi:application --log-file -`
+- `Pre-Deploy Command`: `python manage.py migrate`
+- Required env vars:
+  - `ENVIRONMENT=production`
+  - `SECRET_KEY=<your-production-secret>`
+  - `DATABASE_URL=<supabase-session-pooler-url-with-sslmode=require>`
+  - `POSTGRES_LOCALLY=False`
+
+Run migrations and start server:
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
