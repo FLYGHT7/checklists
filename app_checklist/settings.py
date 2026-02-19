@@ -92,7 +92,11 @@ WSGI_APPLICATION = 'app_checklist.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-if ENVIRONMENT == 'production':
+# En producción siempre usa DATABASE_URL.
+# En desarrollo usa SQLite por defecto; puedes forzar Postgres local con POSTGRES_LOCALLY=True.
+POSTGRES_LOCALLY = env.bool('POSTGRES_LOCALLY', default=False)
+
+if ENVIRONMENT == 'production' or POSTGRES_LOCALLY:
     DATABASES = {
         'default': dj_database_url.parse(env('DATABASE_URL'))
     }
@@ -103,11 +107,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-
-POSTGRES_LOCALLY = True # Set to True if you want to use postgres in production set to false if you want to use sqlite3
-if ENVIRONMENT == 'production' or POSTGRES_LOCALLY == True:
-    DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'))
 
 
 # Password validation
