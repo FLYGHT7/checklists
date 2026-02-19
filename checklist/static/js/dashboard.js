@@ -132,43 +132,45 @@ class DashboardManager {
    * Configura y actualiza los indicadores de scroll horizontal
    */
   setupScrollIndicators() {
-    const checkForHorizontalScroll = (containerId, indicatorId) => {
-      const container = document.getElementById(containerId);
-      const indicator = document.getElementById(indicatorId);
+    const updateContainer = (container) => {
+      if (!container) return;
+      const content = container.closest(".recent-section-content");
+      if (!content) return;
 
-      if (!container || !indicator) {
-        return;
-      }
+      const hasOverflow = container.scrollHeight > container.clientHeight + 4;
+      const atBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 8;
 
-      if (container.scrollWidth > container.clientWidth) {
-        indicator.style.display = container.scrollLeft > 20 ? "none" : "flex";
-      } else {
-        indicator.style.display = "none";
-      }
-    };
-
-    const updateAllIndicators = () => {
-      checkForHorizontalScroll(
-        "todoListsContainer",
-        "todoListsScrollIndicator",
-      );
-      checkForHorizontalScroll("formsContainer", "formsScrollIndicator");
+      content.classList.toggle("is-overflowing", hasOverflow);
+      content.classList.toggle("at-bottom", !hasOverflow || atBottom);
     };
 
     ["todoListsContainer", "formsContainer"].forEach((containerId) => {
       const container = document.getElementById(containerId);
-      if (!container || container.dataset.scrollBound === "true") {
-        return;
-      }
+      if (!container || container.dataset.scrollBound === "true") return;
 
       container.dataset.scrollBound = "true";
-      container.addEventListener("scroll", updateAllIndicators, {
+
+      // Actualizar al hacer scroll
+      container.addEventListener("scroll", () => updateContainer(container), {
         passive: true,
       });
+
+      // Actualización inicial
+      updateContainer(container);
     });
 
-    window.addEventListener("resize", updateAllIndicators, { passive: true });
-    updateAllIndicators();
+    // Re-check on resize (layout shifts can change overflow)
+    window.addEventListener(
+      "resize",
+      () => {
+        ["todoListsContainer", "formsContainer"].forEach((id) => {
+          updateContainer(document.getElementById(id));
+        });
+      },
+      { passive: true },
+    );
   }
 
   /**

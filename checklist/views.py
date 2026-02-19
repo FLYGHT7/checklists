@@ -45,7 +45,7 @@ def dashboard(request):
             progress_count=Count('tasks', filter=Q(tasks__status='progress')),
             done_count=Count('tasks', filter=Q(tasks__status='done'))
         ) \
-        .order_by('-created_at')[:5]
+        .order_by('-created_at')[:20]
     
     # Optimizar consulta de formularios
     forms = GForm.objects.filter(user=request.user) \
@@ -55,7 +55,7 @@ def dashboard(request):
             questions_count=Count('questions', distinct=True),
             responses_count=Count('responses', distinct=True)
         ) \
-        .order_by('-updated_at')[:5]
+        .order_by('-updated_at')[:20]
     
     # Calcular estadísticas generales de manera eficiente
     todo_lists_count = TodoList.objects.filter(user=request.user).count()
