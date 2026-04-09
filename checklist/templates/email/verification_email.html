@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email — DragTask</title>
+  <!--
+    Plain HTML email — no external CSS, no web fonts, no JS.
+    Inline styles only for maximum compatibility across email clients.
+  -->
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f8;font-family:Arial,Helvetica,sans-serif;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f8;padding:40px 16px;">
+    <tr>
+      <td align="center">
+
+        <!-- Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header bar -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#4f46e5,#6366f1);padding:32px 40px;text-align:center;">
+              <p style="margin:0;font-size:2rem;line-height:1;">✅</p>
+              <h1 style="margin:12px 0 0;color:#ffffff;font-size:1.4rem;font-weight:700;letter-spacing:-0.01em;">
+                Confirm your email address
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px;">
+              <p style="margin:0 0 16px;color:#374151;font-size:0.95rem;line-height:1.6;">
+                Hi <strong>{{ user.username }}</strong>,
+              </p>
+              <p style="margin:0 0 24px;color:#374151;font-size:0.95rem;line-height:1.6;">
+                Thanks for signing up to <strong>DragTask</strong>. Click the button below to verify
+                your email address and activate your account.
+              </p>
+
+              <!-- CTA button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
+                <tr>
+                  <td style="background:#6366f1;border-radius:10px;text-align:center;">
+                    <a href="{{ verify_url }}"
+                       style="display:inline-block;padding:14px 36px;color:#ffffff;font-size:0.95rem;
+                              font-weight:600;text-decoration:none;letter-spacing:0.01em;">
+                      Verify my email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 8px;color:#6b7280;font-size:0.82rem;line-height:1.5;">
+                This link expires in <strong>24 hours</strong>. If you didn't create a DragTask account,
+                you can safely ignore this email.
+              </p>
+
+              <!-- Fallback URL -->
+              <p style="margin:24px 0 0;color:#9ca3af;font-size:0.75rem;line-height:1.5;">
+                If the button doesn't work, copy and paste this URL into your browser:<br>
+                <a href="{{ verify_url }}" style="color:#6366f1;word-break:break-all;">{{ verify_url }}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+              <p style="margin:0;color:#9ca3af;font-size:0.75rem;line-height:1.5;">
+                © 2026 DragTask &nbsp;·&nbsp; You received this email because you registered an account.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Card -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

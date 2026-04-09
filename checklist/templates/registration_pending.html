@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Check your inbox" %} — DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="register-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-7">
+        <div class="register-card text-center">
+
+          <div class="mb-4">
+            <span style="font-size: 3.5rem; line-height: 1;">
+              <i class="bi bi-envelope-check" style="color: var(--primary, #6366f1);"></i>
+            </span>
+          </div>
+
+          {% if resent and not cooldown %}
+            <h2 class="mb-2">{% trans_tag "Email resent!" %}</h2>
+            <p class="text-muted">
+              {% trans_tag "We sent a new verification link. Check your inbox (and spam folder)." %}
+            </p>
+          {% elif cooldown %}
+            <h2 class="mb-2">{% trans_tag "Please wait" %}</h2>
+            <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+              <i class="bi bi-clock"></i>
+              {% trans_tag "You requested a link recently. Please wait 2 minutes before trying again." %}
+            </div>
+          {% else %}
+            <h2 class="mb-2">{% trans_tag "Check your inbox" %}</h2>
+            <p class="text-muted">
+              {% trans_tag "We sent a verification link to your email address. Click it to activate your account." %}
+            </p>
+            <p class="text-muted" style="font-size: 0.85rem;">
+              {% trans_tag "The link expires in 24 hours. Check your spam folder if you don't see it." %}
+            </p>
+          {% endif %}
+
+          <hr class="my-4">
+
+          <p class="text-muted mb-2" style="font-size: 0.9rem;">
+            {% trans_tag "Didn't receive the email?" %}
+          </p>
+
+          <form action="{% url 'resend_verification' %}" method="POST" class="d-flex flex-column gap-2 align-items-center">
+            {% csrf_token %}
+            <input
+              type="email"
+              name="email"
+              required
+              class="form-control"
+              placeholder="{% trans_tag 'Your registration email' %}"
+              style="max-width: 320px;"
+            >
+            <button type="submit" class="btn btn-outline-primary btn-sm px-4">
+              <i class="bi bi-send me-1"></i>{% trans_tag "Resend verification email" %}
+            </button>
+          </form>
+
+          <div class="mt-4">
+            <a href="{% url 'login' %}" class="text-muted" style="font-size: 0.85rem;">
+              <i class="bi bi-arrow-left me-1"></i>{% trans_tag "Back to login" %}
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

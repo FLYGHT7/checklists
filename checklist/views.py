@@ -8,6 +8,9 @@ from django.utils import timezone
 from datetime import timedelta, date
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 import json
 import hashlib
 import os
@@ -16,7 +19,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from .models import (
     TodoList, Task, GForm, GQuestion, GOption, GResponse, GAnswer, GSelectedOption,
-    BankQuestion, BankOption, FormPermission, FormShareLink
+    BankQuestion, BankOption, FormPermission, FormShareLink, EmailVerificationToken
 )
 from .forms import (
     UserRegistrationForm, TodoListForm, TaskForm, GFormForm, GQuestionForm, GOptionForm, 
@@ -112,11 +115,110 @@ def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            login(request, form.save())
-            return redirect('dashboard')
+            user = form.save(commit=False)
+            user.is_active = False   # blocked until email is verified
+            user.save()
+
+            # Create verification token and send email
+            token_obj = EmailVerificationToken.objects.create(user=user)
+            _send_verification_email(request, user, token_obj.token)
+
+            return redirect('registration_pending')
     else:
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
+
+
+def _send_verification_email(request, user, token):
+    """Helper — builds and sends the verification email."""
+    verify_url = request.build_absolute_uri(
+        reverse('verify_email', kwargs={'token': token})
+    )
+    subject = 'Verify your email — DragTask'
+    html_body = render_to_string('email/verification_email.html', {
+        'user': user,
+        'verify_url': verify_url,
+    })
+    plain_body = (
+        f'Hi {user.username},\n\n'
+        f'Click the link below to verify your email:\n{verify_url}\n\n'
+        f'The link expires in 24 hours.\n\nDragTask'
+    )
+    send_mail(
+        subject=subject,
+        message=plain_body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        html_message=html_body,
+        fail_silently=False,
+    )
+
+
+def registration_pending_view(request):
+    return render(request, 'registration_pending.html')
+
+
+def verify_email_view(request, token):
+    try:
+        token_obj = EmailVerificationToken.objects.select_related('user').get(token=token)
+    except EmailVerificationToken.DoesNotExist:
+        # Token already used or never existed — do not reveal which
+        return render(request, 'verification_failed.html', {'reason': 'invalid'})
+
+    if token_obj.is_expired():
+        token_obj.delete()
+        return render(request, 'verification_failed.html', {'reason': 'expired'})
+
+    user = token_obj.user
+    user.is_active = True
+    user.save(update_fields=['is_active'])
+    token_obj.delete()   # single-use — no replay possible
+
+    login(request, user)
+    return redirect('email_verified')
+
+
+def email_verified_view(request):
+    return render(request, 'email_verified.html')
+
+
+@require_POST
+def resend_verification_view(request):
+    """Resend the verification email.
+
+    Always returns the same response regardless of whether the email
+    exists — prevents user enumeration.
+    Rate-limited: rejects if the last token was created less than 2 minutes ago.
+    """
+    email = request.POST.get('email', '').strip().lower()
+    RESEND_COOLDOWN = timedelta(minutes=2)
+    GENERIC_RESPONSE = render(request, 'registration_pending.html', {'resent': True})
+
+    if not email:
+        return GENERIC_RESPONSE
+
+    try:
+        user = User.objects.get(email__iexact=email, is_active=False)
+    except User.DoesNotExist:
+        # Do not reveal whether the email exists
+        return GENERIC_RESPONSE
+
+    # Rate-limit: honour cooldown to prevent email flooding
+    try:
+        existing = EmailVerificationToken.objects.get(user=user)
+        if timezone.now() - existing.created_at < RESEND_COOLDOWN:
+            return render(request, 'registration_pending.html', {
+                'resent': False,
+                'cooldown': True,
+            })
+        existing.delete()
+    except EmailVerificationToken.DoesNotExist:
+        pass
+
+    token_obj = EmailVerificationToken.objects.create(user=user)
+    _send_verification_email(request, user, token_obj.token)
+
+    return GENERIC_RESPONSE
 
 def login_view(request):
     if request.method == 'POST':

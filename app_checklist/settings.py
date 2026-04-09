@@ -239,3 +239,20 @@ LOGGING = {
         },
     },
 }
+
+# ─────────────────────────────────────────────
+# Email — Resend SMTP
+# In development: emails are printed to the terminal (no SMTP call).
+# In production:  sent via Resend SMTP relay using RESEND_API_KEY.
+# ─────────────────────────────────────────────
+if ENVIRONMENT == 'development':
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND    = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST       = 'smtp.resend.com'
+    EMAIL_PORT       = 587
+    EMAIL_USE_TLS    = True
+    EMAIL_HOST_USER  = 'resend'                          # fixed string required by Resend
+    EMAIL_HOST_PASSWORD = env('RESEND_API_KEY')
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')

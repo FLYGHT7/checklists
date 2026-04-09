@@ -340,3 +340,36 @@ class GSelectedOption(models.Model):
   
   def __str__(self):
       return f"Opción seleccionada: {self.option.text}"
+
+
+class EmailVerificationToken(models.Model):
+    """Token de verificación de email para nuevos registros.
+    
+    El usuario se crea con is_active=False hasta que verifica
+    su email haciendo clic en el enlace que contiene este token.
+    El token expira a las 24 horas y se elimina tras su uso.
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='verification_token',
+    )
+    token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    TOKEN_EXPIRY_HOURS = 24
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(hours=self.TOKEN_EXPIRY_HOURS)
+
+    def __str__(self):
+        return f"Verification token for {self.user.email}"
+
+    class Meta:
+        verbose_name = 'Email Verification Token'
+        verbose_name_plural = 'Email Verification Tokens'

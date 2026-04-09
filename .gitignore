@@ -48,6 +48,7 @@ build/
 .agents/
 .claude/
 .cursor/
+skills-lock.json
 
 # Archivos de despliegue
 *.bak
@@ -61,4 +62,7 @@ package-lock.json
 yarn.lock
 
 # Archivos de Docker (si usas Docker)
-docker-compose.override.yml
+docker-compose.override.
+
+#doc 
+doc/

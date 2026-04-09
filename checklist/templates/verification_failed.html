@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag "Verification failed" %} — DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="register-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-7">
+        <div class="register-card text-center">
+
+          <div class="mb-4">
+            <span style="font-size: 3.5rem; line-height: 1;">
+              <i class="bi bi-exclamation-circle" style="color: #ef4444;"></i>
+            </span>
+          </div>
+
+          {% if reason == 'expired' %}
+            <h2 class="mb-2">{% trans_tag "Link expired" %}</h2>
+            <p class="text-muted">
+              {% trans_tag "This verification link has expired (links are valid for 24 hours). Request a new one below." %}
+            </p>
+          {% else %}
+            <h2 class="mb-2">{% trans_tag "Invalid link" %}</h2>
+            <p class="text-muted">
+              {% trans_tag "This verification link is invalid or has already been used. If your account isn't active yet, request a new link." %}
+            </p>
+          {% endif %}
+
+          <hr class="my-4">
+
+          <p class="text-muted mb-2" style="font-size: 0.9rem;">
+            {% trans_tag "Enter your registration email to receive a new link:" %}
+          </p>
+
+          <form action="{% url 'resend_verification' %}" method="POST" class="d-flex flex-column gap-2 align-items-center">
+            {% csrf_token %}
+            <input
+              type="email"
+              name="email"
+              required
+              class="form-control"
+              placeholder="{% trans_tag 'Your registration email' %}"
+              style="max-width: 320px;"
+            >
+            <button type="submit" class="btn btn-primary btn-sm px-4">
+              <i class="bi bi-send me-1"></i>{% trans_tag "Send new verification link" %}
+            </button>
+          </form>
+
+          <div class="mt-4">
+            <a href="{% url 'login' %}" class="text-muted" style="font-size: 0.85rem;">
+              <i class="bi bi-arrow-left me-1"></i>{% trans_tag "Back to login" %}
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
