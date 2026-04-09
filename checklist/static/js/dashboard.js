@@ -69,8 +69,10 @@ class DashboardManager {
    */
   deferInitialization() {
     // Usar requestIdleCallback si está disponible, o setTimeout como fallback
-    const scheduleInit =
-      window.requestIdleCallback || ((cb) => setTimeout(cb, 1000)); // 1 segundo después de la carga
+    // Always pass { timeout: 2000 } so a busy CPU doesn’t defer indefinitely
+    const scheduleInit = window.requestIdleCallback
+      ? (cb) => window.requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 1000);
 
     scheduleInit(() => {
       // Actualizar estadísticas después de que la página esté completamente cargada
@@ -91,11 +93,30 @@ class DashboardManager {
     this.setupScrollIndicators();
     this.syncAllProgressBars();
 
+    // Mostrar skeleton en barras de progreso y stat de Completed antes del fetch
+    this.showSkeletons();
+
     // Configurar intervalo de actualización
     this.setupUpdateInterval();
 
     // Actualizar estadísticas iniciales
     this.updateDashboardStats();
+  }
+
+  /**
+   * Añade skeleton-shimmer a los elementos que se actualizan vía fetch
+   */
+  showSkeletons() {
+    // Stat number: solo el de Completed se recalcula via JS
+    const completedEl = document.querySelector(
+      this.config.selectors.totalCompleted,
+    );
+    if (completedEl) completedEl.classList.add("skeleton-shimmer");
+
+    // Progress bars: todas se recalculan via fetch
+    document
+      .querySelectorAll(this.config.selectors.listProgressBar)
+      .forEach((bar) => bar.classList.add("skeleton-shimmer"));
   }
 
   /**
@@ -235,9 +256,14 @@ class DashboardManager {
       );
       if (totalCompletedElement) {
         totalCompletedElement.textContent = totalCompletedTasks;
+        totalCompletedElement.classList.remove("skeleton-shimmer");
       }
     } catch (error) {
       console.error("Error al actualizar estadísticas:", error);
+      // Quitar skeletons aunque falle el fetch
+      document
+        .querySelectorAll(".skeleton-shimmer")
+        .forEach((el) => el.classList.remove("skeleton-shimmer"));
     }
   }
 
@@ -324,6 +350,12 @@ class DashboardManager {
     if (totalElement) totalElement.textContent = stats.total;
     if (todoElement) todoElement.textContent = stats.todo;
     if (doneElement) doneElement.textContent = stats.done;
+
+    // Quitar skeleton de la barra de progreso de esta card
+    const progressBar = listElement.querySelector(
+      this.config.selectors.listProgressBar,
+    );
+    if (progressBar) progressBar.classList.remove("skeleton-shimmer");
 
     this.updateListProgress(listElement, stats);
   }

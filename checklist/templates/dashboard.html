@@ -5,170 +5,85 @@
 {% block title %}{% trans_tag "Dashboard" %} - DragTask{% endblock %}
 {% block styles %}
 <!-- Regular CSS load -->
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=16" />
 {% endblock %}
 {% block content %}
 {% with delete_confirm_message=LANGUAGE_CODE|yesno:"Are you sure you want to delete this list?,¿Estás seguro de que quieres eliminar esta lista?" %}
 <div class="dashboard-container">
-  <div class="container py-5">
-    <!-- Header de bienvenida -->
-    <div class="row mb-5">
-      <div class="col-12">
-        <div class="welcome-header">
-          <div class="welcome-content">
-            <h1 class="dashboard-title">
-              <span id="dashboard-greeting"
-                data-morning="{% trans_tag 'Good morning' %}"
-                data-afternoon="{% trans_tag 'Good afternoon' %}"
-                data-evening="{% trans_tag 'Good evening' %}"
-              >{% trans_tag "Welcome" %}</span>, <span class="username-highlight">{{ user.username }}</span>
-            </h1>
-            <p class="welcome-date-line" id="dashboard-date" aria-live="polite"></p>
-            <p class="dashboard-subtitle">
-              {% trans_tag "Select a tool to start organizing your tasks" %}
-            </p>
-            <div class="dashboard-quick-actions mt-4">
-              <a
-                href="{% url 'create_todo_list' %}"
-                class="btn btn-light btn-sm"
-              >
-                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New Todo List" %}
-              </a>
-              <a
-                href="{% url 'gform_create' %}"
-                class="btn btn-outline-light btn-sm"
-              >
-                <i class="bi bi-file-earmark-plus" aria-hidden="true"></i> {% trans_tag "New Form" %}
-              </a>
-              <a
-                href="{% url 'todo_lists' %}"
-                class="btn btn-outline-light btn-sm"
-              >
-                <i class="bi bi-kanban" aria-hidden="true"></i> {% trans_tag "Go to Boards" %}
-              </a>
-            </div>
-            <div class="dashboard-summary-chips mt-3">
-              <span class="summary-chip">
-                <i class="bi bi-list-check" aria-hidden="true"></i>
-                <strong>{{ todo_lists_count }}</strong> {% trans_tag "Lists" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-check2-all" aria-hidden="true"></i>
-                <strong>{{ completed_tasks_count }}</strong> {% trans_tag "Completed" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                <strong>{{ forms_count }}</strong> {% trans_tag "Forms" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-reply-fill" aria-hidden="true"></i>
-                <strong>{{ total_responses }}</strong> {% trans_tag "Responses" %}
-              </span>
-            </div>
-          </div>
-          <div class="welcome-decoration" aria-hidden="true">
-            <div class="decoration-circle"></div>
-            <div class="decoration-circle"></div>
-          </div>
-        </div>
+  <div class="container-fluid px-4 py-3">
+
+    <!-- Header de bienvenida (compacto) -->
+    <div class="welcome-wrapper" id="welcomeWrapper">
+    <div class="welcome-header" id="welcomeHeader">
+      <div class="welcome-content">
+        <h1 class="dashboard-title">
+          <span id="dashboard-greeting"
+            data-morning="{% trans_tag 'Good morning' %}"
+            data-afternoon="{% trans_tag 'Good afternoon' %}"
+            data-evening="{% trans_tag 'Good evening' %}"
+          >{% trans_tag "Welcome" %}</span>, <span class="username-highlight">{{ user.username }}</span>
+        </h1>
+        <p class="welcome-date-line" id="dashboard-date" aria-live="polite"></p>
+      </div>
+      <div class="welcome-decoration" aria-hidden="true">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
       </div>
     </div>
+    </div><!-- /welcome-wrapper -->
 
-    <!-- Tarjetas de herramientas -->
-    <div class="row">
-      <div class="col-12">
-        <div class="tool-selector">
-          <div class="row g-4 justify-content-center">
-            <!-- Todo List Card -->
-            <div class="col-md-6 col-lg-5">
-              <div class="tool-card todo-card">
-                <div class="tool-card-top">
-                  <div class="tool-icon">
-                    <i class="bi bi-kanban" aria-hidden="true"></i>
-                  </div>
-                  <div class="tool-card-label">
-                    <h3>{% trans_tag "Todo List" %}</h3>
-                    <span class="tool-card-caption">{% trans_tag "Task Management" %}</span>
-                  </div>
-                </div>
-                <p>
-                  {% trans_tag "Organize your tasks in columns and drag to change their status." %}
-                </p>
-                <div class="tool-features">
-                  <span class="feature-badge"
-                    ><i class="bi bi-columns-gap" aria-hidden="true"></i> {% trans_tag "Columns" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-arrow-left-right" aria-hidden="true"></i>
-                    {% trans_tag "Drag & Drop" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-calendar-check" aria-hidden="true"></i> {% trans_tag "Dates" %}</span
-                  >
-                </div>
-                <a
-                  href="{% url 'todo_lists' %}"
-                  class="btn btn-primary w-100 mt-3"
-                  >{% trans_tag "Create Todo List" %}</a
-                >
-              </div>
-            </div>
-
-            <!-- Formulario Dinámico Card -->
-            <div class="col-md-6 col-lg-5">
-              <div class="tool-card form-card">
-                <div class="tool-card-top">
-                  <div class="tool-icon form-icon">
-                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                  </div>
-                  <div class="tool-card-label">
-                    <h3>{% trans_tag "Dynamic Form" %}</h3>
-                    <span class="tool-card-caption">{% trans_tag "Data Collection" %}</span>
-                  </div>
-                </div>
-                <p>
-                  {% trans_tag "Create custom forms with different types of questions and upload evidence." %}
-                </p>
-                <div class="tool-features">
-                  <span class="feature-badge"
-                    ><i class="bi bi-question-circle" aria-hidden="true"></i> {% trans_tag "Questions" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-image" aria-hidden="true"></i> {% trans_tag "Evidence" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-arrow-down-up" aria-hidden="true"></i> {% trans_tag "Reorder" %}</span
-                  >
-                </div>
-                <a
-                  href="{% url 'gform_list' %}"
-                  class="btn btn-primary w-100 mt-3"
-                  >{% trans_tag "Create Form" %}</a
-                >
-              </div>
-            </div>
-          </div>
+    <!-- Stats mini-bar -->
+    <div class="stats-mini-bar mb-3" id="statsMiniBar">
+      <div class="stat-mini">
+        <i class="bi bi-list-check stat-mini-icon" aria-hidden="true"></i>
+        <div class="stat-mini-body">
+          <span class="stat-mini-number" id="total-todo-lists">{{ todo_lists_count }}</span>
+          <span class="stat-mini-label">{% trans_tag "Lists" %}</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <i class="bi bi-check2-all stat-mini-icon success" aria-hidden="true"></i>
+        <div class="stat-mini-body">
+          <span class="stat-mini-number" id="total-completed-tasks">{{ completed_tasks_count }}</span>
+          <span class="stat-mini-label">{% trans_tag "Completed" %}</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <i class="bi bi-file-earmark-text stat-mini-icon info" aria-hidden="true"></i>
+        <div class="stat-mini-body">
+          <span class="stat-mini-number" id="total-forms">{{ forms_count }}</span>
+          <span class="stat-mini-label">{% trans_tag "Forms" %}</span>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <i class="bi bi-reply-fill stat-mini-icon warning" aria-hidden="true"></i>
+        <div class="stat-mini-body">
+          <span class="stat-mini-number" id="total-responses">{{ total_responses }}</span>
+          <span class="stat-mini-label">{% trans_tag "Responses" %}</span>
         </div>
       </div>
     </div>
 
     <!-- Secciones Recientes -->
-    <div class="row mt-5">
+    <div class="row g-3">
       <!-- Todo Lists Recientes -->
-      <div class="col-lg-6 mb-4">
+      <div class="col-lg-6">
         <div class="recent-section-card">
           <div class="recent-section-header">
             <h2 class="recent-section-title">
               <i class="bi bi-list-check" aria-hidden="true"></i>
               {% trans_tag "Recent Todo Lists" %}
-              <span class="section-count-badge"
-                >{{ recent_todo_lists|length }}</span
-              >
+              <span class="section-count-badge">{{ recent_todo_lists|length }}</span>
             </h2>
-            <a href="{% url 'todo_lists' %}" class="view-all-button">
-              {% trans_tag "View all" %}
-              <i class="bi bi-arrow-right" aria-hidden="true"></i>
-            </a>
+            <div class="d-flex gap-2 align-items-center">
+              <a href="{% url 'create_todo_list' %}" class="btn-new-item" aria-label="{% trans_tag 'New Todo List' %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New" %}
+              </a>
+              <a href="{% url 'todo_lists' %}" class="view-all-button">
+                {% trans_tag "View all" %}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
 
           <div class="recent-section-content">
@@ -183,11 +98,19 @@
                 </div>
                 <div class="modern-card-content">
                   <div class="modern-card-header">
-                    <h5 class="modern-card-title">
-                      <a href="{% url 'view_todo_list' list_id=todo_list.id %}"
-                        >{{ todo_list.name }}</a
-                      >
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <h5 class="modern-card-title">
+                        <a href="{% url 'view_todo_list' list_id=todo_list.id %}">{{ todo_list.name }}</a>
+                      </h5>
+                      <div class="card-quick-actions">
+                        <a href="{% url 'view_todo_list' list_id=todo_list.id %}" class="card-action-btn" aria-label="{% trans_tag 'View' %} {{ todo_list.name }}">
+                          <i class="bi bi-eye" aria-hidden="true"></i>
+                        </a>
+                        <a href="{% url 'delete_todo_list' list_id=todo_list.id %}" class="card-action-btn card-action-danger" aria-label="{% trans_tag 'Delete' %} {{ todo_list.name }}" onclick="return confirm('{{ delete_confirm_message }}');">
+                          <i class="bi bi-trash" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                    </div>
                     <span class="modern-card-date">
                       <i class="bi bi-calendar3" aria-hidden="true"></i> {{ todo_list.created_at|date:"d/m/Y" }}
                     </span>
@@ -253,27 +176,12 @@
                         <div
                           class="progress-bar list-progress-bar"
                           data-progress="{{ completion_percent|default:0 }}"
+                          style="width: {{ completion_percent|default:0 }}%"
                         ></div>
                       </div>
                     </div>
                   </div>
-                  <div class="modern-card-actions">
-                    <a
-                      href="{% url 'view_todo_list' list_id=todo_list.id %}"
-                      class="btn btn-outline-primary"
-                      aria-label="{% trans_tag 'View' %} {{ todo_list.name }}"
-                    >
-                      <i class="bi bi-eye" aria-hidden="true"></i> {% trans_tag "View" %}
-                    </a>
-                    <a
-                      href="{% url 'delete_todo_list' list_id=todo_list.id %}"
-                      class="btn btn-outline-danger"
-                      aria-label="{% trans_tag 'Delete' %} {{ todo_list.name }}"
-                      onclick="return confirm('{{ delete_confirm_message }}');"
-                    >
-                      <i class="bi bi-trash" aria-hidden="true"></i> {% trans_tag "Delete" %}
-                    </a>
-                  </div>
+
                 </div>
               </div>
               {% endfor %}
@@ -281,7 +189,26 @@
             {% else %}
             <div class="empty-state">
               <div class="empty-icon">
-                <i class="bi bi-list-task" aria-hidden="true"></i>
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <!-- Clipboard base -->
+                  <rect x="20" y="22" width="80" height="88" rx="10" fill="#6366f1" fill-opacity="0.12"/>
+                  <rect x="20" y="22" width="80" height="88" rx="10" stroke="#6366f1" stroke-opacity="0.35" stroke-width="2"/>
+                  <!-- Clipboard top clip -->
+                  <rect x="40" y="14" width="40" height="18" rx="7" fill="#6366f1" fill-opacity="0.2" stroke="#6366f1" stroke-opacity="0.4" stroke-width="2"/>
+                  <!-- Row 1 check + line -->
+                  <circle cx="40" cy="54" r="7" fill="#6366f1" fill-opacity="0.18" stroke="#6366f1" stroke-opacity="0.5" stroke-width="1.5"/>
+                  <polyline points="36.5,54 39,57 43.5,51" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                  <rect x="53" y="50" width="34" height="7" rx="3.5" fill="#6366f1" fill-opacity="0.2"/>
+                  <!-- Row 2 empty circle + shorter line -->
+                  <circle cx="40" cy="74" r="7" fill="none" stroke="#6366f1" stroke-opacity="0.3" stroke-width="1.5"/>
+                  <rect x="53" y="70" width="26" height="7" rx="3.5" fill="#6366f1" fill-opacity="0.12"/>
+                  <!-- Row 3 empty circle + shorter line -->
+                  <circle cx="40" cy="94" r="7" fill="none" stroke="#6366f1" stroke-opacity="0.2" stroke-width="1.5"/>
+                  <rect x="53" y="90" width="20" height="7" rx="3.5" fill="#6366f1" fill-opacity="0.08"/>
+                  <!-- Sparkle top-right -->
+                  <circle cx="95" cy="28" r="4" fill="#a5b4fc" fill-opacity="0.6"/>
+                  <circle cx="88" cy="18" r="2.5" fill="#6366f1" fill-opacity="0.4"/>
+                </svg>
               </div>
               <h4>{% trans_tag "You don't have recent Todo Lists" %}</h4>
               <p>
@@ -300,7 +227,7 @@
       </div>
 
       <!-- Formularios Recientes -->
-      <div class="col-lg-6 mb-4">
+      <div class="col-lg-6">
         <div class="recent-section-card">
           <div class="recent-section-header">
             <h2 class="recent-section-title">
@@ -308,10 +235,15 @@
               {% trans_tag "Recent Forms" %}
               <span class="section-count-badge">{{ forms|length }}</span>
             </h2>
-            <a href="{% url 'gform_list' %}" class="view-all-button">
-              {% trans_tag "View all" %}
-              <i class="bi bi-arrow-right" aria-hidden="true"></i>
-            </a>
+            <div class="d-flex gap-2 align-items-center">
+              <a href="{% url 'gform_create' %}" class="btn-new-item" aria-label="{% trans_tag 'New Form' %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New" %}
+              </a>
+              <a href="{% url 'gform_list' %}" class="view-all-button">
+                {% trans_tag "View all" %}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
 
           <div class="recent-section-content">
@@ -326,23 +258,30 @@
                 </div>
                 <div class="modern-card-content">
                   <div class="modern-card-header">
-                    <h5 class="modern-card-title">
-                      <a href="{% url 'gform_edit' form_id=form.id %}"
-                        >{{ form.title }}</a
-                      >
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <h5 class="modern-card-title">
+                        <a href="{% url 'gform_edit' form_id=form.id %}">{{ form.title }}</a>
+                      </h5>
+                      <div class="card-quick-actions">
+                        <a href="{% url 'gform_edit' form_id=form.id %}" class="card-action-btn" aria-label="{% trans_tag 'Edit' %} {{ form.title }}">
+                          <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </a>
+                        <a href="{% url 'gform_view' form_id=form.id %}" class="card-action-btn" aria-label="{% trans_tag 'View' %} {{ form.title }}">
+                          <i class="bi bi-eye" aria-hidden="true"></i>
+                        </a>
+                        <a href="{% url 'gform_responses' form_id=form.id %}" class="card-action-btn card-action-info" aria-label="{% trans_tag 'Responses' %} {{ form.title }}">
+                          <i class="bi bi-bar-chart" aria-hidden="true"></i>
+                        </a>
+                      </div>
+                    </div>
                     <div class="d-flex align-items-center gap-2">
                       <span class="modern-card-date">
                         <i class="bi bi-calendar3" aria-hidden="true"></i> {{ form.created_at|date:"d/m/Y" }}
                       </span>
                       {% if form.is_published %}
-                      <span class="status-badge published"
-                        >{% trans_tag "Published" %}</span
-                      >
+                      <span class="status-badge published">{% trans_tag "Published" %}</span>
                       {% else %}
-                      <span class="status-badge draft"
-                        >{% trans_tag "Draft" %}</span
-                      >
+                      <span class="status-badge draft">{% trans_tag "Draft" %}</span>
                       {% endif %}
                     </div>
                   </div>
@@ -374,29 +313,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="modern-card-actions">
-                    <a
-                      href="{% url 'gform_edit' form_id=form.id %}"
-                      class="btn btn-outline-primary"
-                      aria-label="{% trans_tag 'Edit' %} {{ form.title }}"
-                    >
-                      <i class="bi bi-pencil" aria-hidden="true"></i> {% trans_tag "Edit" %}
-                    </a>
-                    <a
-                      href="{% url 'gform_view' form_id=form.id %}"
-                      class="btn btn-outline-primary"
-                      aria-label="{% trans_tag 'View' %} {{ form.title }}"
-                    >
-                      <i class="bi bi-eye" aria-hidden="true"></i> {% trans_tag "View" %}
-                    </a>
-                    <a
-                      href="{% url 'gform_responses' form_id=form.id %}"
-                      class="btn btn-outline-info"
-                      aria-label="{% trans_tag 'Responses' %} {{ form.title }}"
-                    >
-                      <i class="bi bi-bar-chart" aria-hidden="true"></i> {% trans_tag "Responses" %}
-                    </a>
-                  </div>
+
                 </div>
               </div>
               {% endfor %}
@@ -404,7 +321,25 @@
             {% else %}
             <div class="empty-state">
               <div class="empty-icon">
-                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <!-- Form sheet -->
+                  <rect x="22" y="16" width="76" height="92" rx="10" fill="#0ea5e9" fill-opacity="0.1"/>
+                  <rect x="22" y="16" width="76" height="92" rx="10" stroke="#0ea5e9" stroke-opacity="0.35" stroke-width="2"/>
+                  <!-- Folded corner -->
+                  <path d="M82 16 L98 32 L82 32 Z" fill="#0ea5e9" fill-opacity="0.18"/>
+                  <path d="M82 16 L98 32" stroke="#0ea5e9" stroke-opacity="0.35" stroke-width="1.5"/>
+                  <!-- Title bar -->
+                  <rect x="34" y="38" width="44" height="8" rx="4" fill="#0ea5e9" fill-opacity="0.3"/>
+                  <!-- Field 1 label + input -->
+                  <rect x="34" y="56" width="22" height="5" rx="2.5" fill="#0ea5e9" fill-opacity="0.2"/>
+                  <rect x="34" y="64" width="52" height="9" rx="4" fill="#0ea5e9" fill-opacity="0.1" stroke="#0ea5e9" stroke-opacity="0.25" stroke-width="1.2"/>
+                  <!-- Field 2 label + input -->
+                  <rect x="34" y="80" width="28" height="5" rx="2.5" fill="#0ea5e9" fill-opacity="0.2"/>
+                  <rect x="34" y="88" width="52" height="9" rx="4" fill="#0ea5e9" fill-opacity="0.1" stroke="#0ea5e9" stroke-opacity="0.25" stroke-width="1.2"/>
+                  <!-- Sparkle -->
+                  <circle cx="100" cy="22" r="4" fill="#7dd3fc" fill-opacity="0.6"/>
+                  <circle cx="18" cy="98" r="3" fill="#0ea5e9" fill-opacity="0.35"/>
+                </svg>
               </div>
               <h4>{% trans_tag "You don't have recent Forms" %}</h4>
               <p>
@@ -418,89 +353,35 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Estadísticas Generales -->
-    <div class="row mt-5">
-      <div class="col-12">
-        <div class="stats-container">
-          <div class="section-header">
-            <h2 class="section-title">{% trans_tag "General Statistics" %}</h2>
-            <div class="section-icon">
-              <i class="bi bi-graph-up" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="row g-4 justify-content-center">
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-primary">
-                  <i class="bi bi-list-check" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-todo-lists">
-                    {{ todo_lists_count }}
-                  </h3>
-                  <p class="stat-card-text">{% trans_tag "Todo Lists" %}</p>
-                  <div class="stat-accent-bar bg-primary"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-success">
-                  <i class="bi bi-check2-all" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-completed-tasks">
-                    {{ completed_tasks_count }}
-                  </h3>
-                  <p class="stat-card-text">
-                      {% trans_tag "Completed Tasks" %}
-                    </p>
-                  <div class="stat-accent-bar bg-success"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-info">
-                  <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-forms">
-                    {{ forms_count }}
-                  </h3>
-                  <p class="stat-card-text">{% trans_tag "Forms" %}</p>
-                  <div class="stat-accent-bar bg-info"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-warning">
-                  <i class="bi bi-reply-fill" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-responses">
-                    {{ total_responses }}
-                  </h3>
-                  <p class="stat-card-text">
-                      {% trans_tag "Responses Received" %}
-                    </p>
-                  <div class="stat-accent-bar bg-warning"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+    </div><!-- /row recientes -->
+  </div><!-- /container-fluid -->
+</div><!-- /dashboard-container -->
 {% endwith %}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/dashboard.js' %}"></script>
+<!-- Welcome: show once per session, then collapse -->
+<script>
+(function () {
+  var wrapper = document.getElementById('welcomeWrapper');
+  if (!wrapper) return;
+  var KEY = 'dashboardWelcomeShown';
+  if (sessionStorage.getItem(KEY)) {
+    // Already shown this session — hide immediately (no animation)
+    wrapper.classList.add('welcome-gone');
+  } else {
+    // First visit this session — show for 3s then collapse
+    sessionStorage.setItem(KEY, '1');
+    setTimeout(function () {
+      wrapper.classList.add('welcome-collapsing');
+      // After transition ends, snap to gone
+      wrapper.addEventListener('transitionend', function () {
+        wrapper.classList.add('welcome-gone');
+      }, { once: true });
+    }, 3000);
+  }
+}());
+</script>
 <!-- Stat count-up animation -->
 <script>
 (function () {
@@ -533,7 +414,7 @@
     });
   }, { threshold: 0.3 });
 
-  document.querySelectorAll('.stat-card-title').forEach(function (el) {
+  document.querySelectorAll('.stat-mini-number').forEach(function (el) {
     observer.observe(el);
   });
 }());
