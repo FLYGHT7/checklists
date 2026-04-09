@@ -10,165 +10,73 @@
 {% block content %}
 {% with delete_confirm_message=LANGUAGE_CODE|yesno:"Are you sure you want to delete this list?,¿Estás seguro de que quieres eliminar esta lista?" %}
 <div class="dashboard-container">
-  <div class="container py-5">
-    <!-- Header de bienvenida -->
-    <div class="row mb-5">
-      <div class="col-12">
-        <div class="welcome-header">
-          <div class="welcome-content">
-            <h1 class="dashboard-title">
-              <span id="dashboard-greeting"
-                data-morning="{% trans_tag 'Good morning' %}"
-                data-afternoon="{% trans_tag 'Good afternoon' %}"
-                data-evening="{% trans_tag 'Good evening' %}"
-              >{% trans_tag "Welcome" %}</span>, <span class="username-highlight">{{ user.username }}</span>
-            </h1>
-            <p class="welcome-date-line" id="dashboard-date" aria-live="polite"></p>
-            <p class="dashboard-subtitle">
-              {% trans_tag "Select a tool to start organizing your tasks" %}
-            </p>
-            <div class="dashboard-quick-actions mt-4">
-              <a
-                href="{% url 'create_todo_list' %}"
-                class="btn btn-light btn-sm"
-              >
-                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New Todo List" %}
-              </a>
-              <a
-                href="{% url 'gform_create' %}"
-                class="btn btn-outline-light btn-sm"
-              >
-                <i class="bi bi-file-earmark-plus" aria-hidden="true"></i> {% trans_tag "New Form" %}
-              </a>
-              <a
-                href="{% url 'todo_lists' %}"
-                class="btn btn-outline-light btn-sm"
-              >
-                <i class="bi bi-kanban" aria-hidden="true"></i> {% trans_tag "Go to Boards" %}
-              </a>
-            </div>
-            <div class="dashboard-summary-chips mt-3">
-              <span class="summary-chip">
-                <i class="bi bi-list-check" aria-hidden="true"></i>
-                <strong>{{ todo_lists_count }}</strong> {% trans_tag "Lists" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-check2-all" aria-hidden="true"></i>
-                <strong>{{ completed_tasks_count }}</strong> {% trans_tag "Completed" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                <strong>{{ forms_count }}</strong> {% trans_tag "Forms" %}
-              </span>
-              <span class="summary-chip">
-                <i class="bi bi-reply-fill" aria-hidden="true"></i>
-                <strong>{{ total_responses }}</strong> {% trans_tag "Responses" %}
-              </span>
-            </div>
-          </div>
-          <div class="welcome-decoration" aria-hidden="true">
-            <div class="decoration-circle"></div>
-            <div class="decoration-circle"></div>
-          </div>
-        </div>
+  <div class="container-fluid px-4 py-3">
+
+    <!-- Header de bienvenida (compacto) -->
+    <div class="welcome-header mb-3">
+      <div class="welcome-content">
+        <h1 class="dashboard-title">
+          <span id="dashboard-greeting"
+            data-morning="{% trans_tag 'Good morning' %}"
+            data-afternoon="{% trans_tag 'Good afternoon' %}"
+            data-evening="{% trans_tag 'Good evening' %}"
+          >{% trans_tag "Welcome" %}</span>, <span class="username-highlight">{{ user.username }}</span>
+        </h1>
+        <p class="welcome-date-line" id="dashboard-date" aria-live="polite"></p>
+      </div>
+      <div class="welcome-decoration" aria-hidden="true">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
       </div>
     </div>
 
-    <!-- Tarjetas de herramientas -->
-    <div class="row">
-      <div class="col-12">
-        <div class="tool-selector">
-          <div class="row g-4 justify-content-center">
-            <!-- Todo List Card -->
-            <div class="col-md-6 col-lg-5">
-              <div class="tool-card todo-card">
-                <div class="tool-card-top">
-                  <div class="tool-icon">
-                    <i class="bi bi-kanban" aria-hidden="true"></i>
-                  </div>
-                  <div class="tool-card-label">
-                    <h3>{% trans_tag "Todo List" %}</h3>
-                    <span class="tool-card-caption">{% trans_tag "Task Management" %}</span>
-                  </div>
-                </div>
-                <p>
-                  {% trans_tag "Organize your tasks in columns and drag to change their status." %}
-                </p>
-                <div class="tool-features">
-                  <span class="feature-badge"
-                    ><i class="bi bi-columns-gap" aria-hidden="true"></i> {% trans_tag "Columns" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-arrow-left-right" aria-hidden="true"></i>
-                    {% trans_tag "Drag & Drop" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-calendar-check" aria-hidden="true"></i> {% trans_tag "Dates" %}</span
-                  >
-                </div>
-                <a
-                  href="{% url 'todo_lists' %}"
-                  class="btn btn-primary w-100 mt-3"
-                  >{% trans_tag "Create Todo List" %}</a
-                >
-              </div>
-            </div>
-
-            <!-- Formulario Dinámico Card -->
-            <div class="col-md-6 col-lg-5">
-              <div class="tool-card form-card">
-                <div class="tool-card-top">
-                  <div class="tool-icon form-icon">
-                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                  </div>
-                  <div class="tool-card-label">
-                    <h3>{% trans_tag "Dynamic Form" %}</h3>
-                    <span class="tool-card-caption">{% trans_tag "Data Collection" %}</span>
-                  </div>
-                </div>
-                <p>
-                  {% trans_tag "Create custom forms with different types of questions and upload evidence." %}
-                </p>
-                <div class="tool-features">
-                  <span class="feature-badge"
-                    ><i class="bi bi-question-circle" aria-hidden="true"></i> {% trans_tag "Questions" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-image" aria-hidden="true"></i> {% trans_tag "Evidence" %}</span
-                  >
-                  <span class="feature-badge"
-                    ><i class="bi bi-arrow-down-up" aria-hidden="true"></i> {% trans_tag "Reorder" %}</span
-                  >
-                </div>
-                <a
-                  href="{% url 'gform_list' %}"
-                  class="btn btn-primary w-100 mt-3"
-                  >{% trans_tag "Create Form" %}</a
-                >
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Stats mini-bar -->
+    <div class="stats-mini-bar mb-3">
+      <div class="stat-mini">
+        <i class="bi bi-list-check stat-mini-icon" aria-hidden="true"></i>
+        <span class="stat-mini-number" id="total-todo-lists">{{ todo_lists_count }}</span>
+        <span class="stat-mini-label">{% trans_tag "Lists" %}</span>
+      </div>
+      <div class="stat-mini-divider"></div>
+      <div class="stat-mini">
+        <i class="bi bi-check2-all stat-mini-icon success" aria-hidden="true"></i>
+        <span class="stat-mini-number" id="total-completed-tasks">{{ completed_tasks_count }}</span>
+        <span class="stat-mini-label">{% trans_tag "Completed" %}</span>
+      </div>
+      <div class="stat-mini-divider"></div>
+      <div class="stat-mini">
+        <i class="bi bi-file-earmark-text stat-mini-icon info" aria-hidden="true"></i>
+        <span class="stat-mini-number" id="total-forms">{{ forms_count }}</span>
+        <span class="stat-mini-label">{% trans_tag "Forms" %}</span>
+      </div>
+      <div class="stat-mini-divider"></div>
+      <div class="stat-mini">
+        <i class="bi bi-reply-fill stat-mini-icon warning" aria-hidden="true"></i>
+        <span class="stat-mini-number" id="total-responses">{{ total_responses }}</span>
+        <span class="stat-mini-label">{% trans_tag "Responses" %}</span>
       </div>
     </div>
 
     <!-- Secciones Recientes -->
-    <div class="row mt-5">
+    <div class="row g-3">
       <!-- Todo Lists Recientes -->
-      <div class="col-lg-6 mb-4">
+      <div class="col-lg-6">
         <div class="recent-section-card">
           <div class="recent-section-header">
             <h2 class="recent-section-title">
               <i class="bi bi-list-check" aria-hidden="true"></i>
               {% trans_tag "Recent Todo Lists" %}
-              <span class="section-count-badge"
-                >{{ recent_todo_lists|length }}</span
-              >
+              <span class="section-count-badge">{{ recent_todo_lists|length }}</span>
             </h2>
-            <a href="{% url 'todo_lists' %}" class="view-all-button">
-              {% trans_tag "View all" %}
-              <i class="bi bi-arrow-right" aria-hidden="true"></i>
-            </a>
+            <div class="d-flex gap-2 align-items-center">
+              <a href="{% url 'create_todo_list' %}" class="btn-new-item" aria-label="{% trans_tag 'New Todo List' %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New" %}
+              </a>
+              <a href="{% url 'todo_lists' %}" class="view-all-button">
+                {% trans_tag "View all" %}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
 
           <div class="recent-section-content">
@@ -300,7 +208,7 @@
       </div>
 
       <!-- Formularios Recientes -->
-      <div class="col-lg-6 mb-4">
+      <div class="col-lg-6">
         <div class="recent-section-card">
           <div class="recent-section-header">
             <h2 class="recent-section-title">
@@ -308,10 +216,15 @@
               {% trans_tag "Recent Forms" %}
               <span class="section-count-badge">{{ forms|length }}</span>
             </h2>
-            <a href="{% url 'gform_list' %}" class="view-all-button">
-              {% trans_tag "View all" %}
-              <i class="bi bi-arrow-right" aria-hidden="true"></i>
-            </a>
+            <div class="d-flex gap-2 align-items-center">
+              <a href="{% url 'gform_create' %}" class="btn-new-item" aria-label="{% trans_tag 'New Form' %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans_tag "New" %}
+              </a>
+              <a href="{% url 'gform_list' %}" class="view-all-button">
+                {% trans_tag "View all" %}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
           </div>
 
           <div class="recent-section-content">
@@ -418,85 +331,9 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Estadísticas Generales -->
-    <div class="row mt-5">
-      <div class="col-12">
-        <div class="stats-container">
-          <div class="section-header">
-            <h2 class="section-title">{% trans_tag "General Statistics" %}</h2>
-            <div class="section-icon">
-              <i class="bi bi-graph-up" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="row g-4 justify-content-center">
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-primary">
-                  <i class="bi bi-list-check" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-todo-lists">
-                    {{ todo_lists_count }}
-                  </h3>
-                  <p class="stat-card-text">{% trans_tag "Todo Lists" %}</p>
-                  <div class="stat-accent-bar bg-primary"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-success">
-                  <i class="bi bi-check2-all" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-completed-tasks">
-                    {{ completed_tasks_count }}
-                  </h3>
-                  <p class="stat-card-text">
-                      {% trans_tag "Completed Tasks" %}
-                    </p>
-                  <div class="stat-accent-bar bg-success"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-info">
-                  <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-forms">
-                    {{ forms_count }}
-                  </h3>
-                  <p class="stat-card-text">{% trans_tag "Forms" %}</p>
-                  <div class="stat-accent-bar bg-info"></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-              <div class="modern-stat">
-                <div class="stat-card-icon bg-warning">
-                  <i class="bi bi-reply-fill" aria-hidden="true"></i>
-                </div>
-                <div class="stat-card-content">
-                  <h3 class="stat-card-title" id="total-responses">
-                    {{ total_responses }}
-                  </h3>
-                  <p class="stat-card-text">
-                      {% trans_tag "Responses Received" %}
-                    </p>
-                  <div class="stat-accent-bar bg-warning"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+    </div><!-- /row recientes -->
+  </div><!-- /container-fluid -->
+</div><!-- /dashboard-container -->
 {% endwith %}
 {% endblock %}
 {% block scripts %}
@@ -533,7 +370,7 @@
     });
   }, { threshold: 0.3 });
 
-  document.querySelectorAll('.stat-card-title').forEach(function (el) {
+  document.querySelectorAll('.stat-mini-number').forEach(function (el) {
     observer.observe(el);
   });
 }());
