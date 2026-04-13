@@ -5,45 +5,62 @@
 {% block title %}{% trans_tag "Delete Form" %}{% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="{% static 'css/forms_google.css' %}">
+<link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
+<link rel="stylesheet" href="{% static 'css/forms_shared.css' %}?v={% now 'U' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="form-container shadow-sm">
-                <div class="form-header bg-danger text-white">
-                    <h2 class="mb-0">{% trans_tag "Delete Form" %}</h2>
-                </div>
-                <div class="form-body">
-                    <div class="alert alert-warning animate-fade-in">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-exclamation-triangle-fill fs-1 text-warning"></i>
-                            </div>
-                            <div>
-                                <h4 class="alert-heading">{% trans_tag "Warning!" %}</h4>
-                                <p>{% trans_tag "You are about to delete the form" %} <strong>"{{ gform.title }}"</strong>.</p>
-                                <p class="mb-0">{% trans_tag "This action will permanently delete the form and all its associated questions, options, and responses. This action cannot be undone." %}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <form method="post" class="mt-4">
-                        {% csrf_token %}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'gform_edit' form_id=gform.id %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-2"></i> {% trans_tag "Cancel" %}
-                            </a>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bi bi-trash me-2"></i> {% trans_tag "Delete Permanently" %}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<section class="fs-page py-4">
+  <div class="container">
+    <div class="fs-header-wrap">
+      <div class="fs-header fs-header--danger" style="max-width:800px;margin:0 auto">
+        <div class="fs-header-content">
+          <div class="fs-badge">
+            <i class="bi bi-exclamation-triangle-fill"></i>{% trans_tag "Delete Form" %}
+          </div>
+          <h1 class="fs-title">{{ gform.title }}</h1>
+          <p class="fs-subtitle">{% trans_tag "You are about to permanently delete this form." %}</p>
+          <div class="fs-header-actions">
+            <a href="{% url 'gform_edit' form_id=gform.id %}" class="fs-btn-ghost">
+              <i class="bi bi-arrow-left"></i>{% trans_tag "Cancel" %}
+            </a>
+          </div>
         </div>
+        <div class="fs-header-decoration" aria-hidden="true">
+          <div class="fs-header-icon fs-header-icon--danger">
+            <i class="bi bi-trash3"></i>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+
+    <div style="max-width:800px;margin:0 auto">
+      <div class="fs-card" style="animation-delay:80ms">
+        <div class="fs-card-bar fs-card-bar--danger"></div>
+        <div class="fs-card-header">
+          <div class="fs-card-header-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <h3 class="fs-card-header-title">{% trans_tag "Warning!" %}</h3>
+        </div>
+        <div class="fs-card-body">
+          <p class="mb-2">{% trans_tag "You are about to delete the form" %} <strong>"{{ gform.title }}"</strong>.</p>
+          <p class="text-muted mb-0">{% trans_tag "This action will permanently delete the form and all its associated questions, options, and responses. This action cannot be undone." %}</p>
+
+          <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+              <a href="{% url 'gform_edit' form_id=gform.id %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>{% trans_tag "Cancel" %}
+              </a>
+              <button type="submit" class="fs-submit-btn" style="background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 15px rgba(239,68,68,0.35)">
+                <i class="bi bi-trash"></i>{% trans_tag "Delete Permanently" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
