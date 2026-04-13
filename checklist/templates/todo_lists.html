@@ -289,8 +289,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('created') === 'true' || urlParams.get('deleted') === 'true') {
       const message = urlParams.get('created') === 'true' 
-        ? '{% if LANGUAGE_CODE == "en" %}List created successfully{% else %}Lista creada correctamente{% endif %}' 
-        : '{% if LANGUAGE_CODE == "en" %}List deleted successfully{% else %}Lista eliminada correctamente{% endif %}';
+        ? '{{ LANGUAGE_CODE|yesno:"List created successfully,Lista creada correctamente" }}' 
+        : '{{ LANGUAGE_CODE|yesno:"List deleted successfully,Lista eliminada correctamente" }}';
       
       const toast = document.createElement('div');
       toast.className = 'toast toast-success show';

@@ -14,6 +14,7 @@ import os
 import uuid
 from django.contrib.auth.models import User
 from django.urls import reverse
+from .translation import translate
 from .models import (
     TodoList, Task, GForm, GQuestion, GOption, GResponse, GAnswer, GSelectedOption,
     BankQuestion, BankOption, FormPermission, FormShareLink
@@ -23,6 +24,12 @@ from .forms import (
     FormPermissionForm, FormShareLinkForm
 )
 from openpyxl import Workbook
+
+
+def _t(request, text):
+    """Shorthand to translate text based on request language."""
+    lang = getattr(request, 'LANGUAGE_CODE', 'en')
+    return translate(text, lang)
 
 def home(request):
     return render(request, 'home.html')
@@ -104,7 +111,7 @@ def todo_list_stats(request, list_id):
             'done': stats['done']
         })
     except TodoList.DoesNotExist:
-        return JsonResponse({'error': 'Lista no encontrada'}, status=404)
+        return JsonResponse({'error': _t(request, 'List not found')}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -174,7 +181,7 @@ def view_todo_list(request, list_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return HttpResponseForbidden("No tienes permiso para ver esta lista")
+        return HttpResponseForbidden(_t(request, "You don't have permission to view this list"))
     
     # Agrupar tareas por estado
     tasks = {
@@ -198,7 +205,7 @@ def add_task(request, list_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return HttpResponseForbidden("No tienes permiso para modificar esta lista")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this list"))
     
     if request.method == 'POST':
         form = TaskForm(request.POST)
@@ -251,7 +258,7 @@ def edit_task(request, task_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return HttpResponseForbidden("No tienes permiso para modificar esta tarea")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this task"))
     
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task)
@@ -287,7 +294,7 @@ def delete_task(request, task_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return HttpResponseForbidden("No tienes permiso para eliminar esta tarea")
+        return HttpResponseForbidden(_t(request, "You don't have permission to delete this task"))
     
     if request.method == 'POST':
         task.delete()
@@ -323,14 +330,14 @@ def update_task_status(request, task_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return JsonResponse({'error': 'No tienes permiso para modificar esta tarea'}, status=403)
+        return JsonResponse({'error': _t(request, "You don't have permission to modify this task")}, status=403)
     
     try:
         data = json.loads(request.body)
         new_status = data.get('status')
         
         if new_status not in ['todo', 'progress', 'done']:
-            return JsonResponse({'error': 'Estado no válido'}, status=400)
+            return JsonResponse({'error': _t(request, 'Invalid status')}, status=400)
         
         # Actualizar el estado
         task.status = new_status
@@ -352,7 +359,7 @@ def update_tasks_order(request, list_id):
     
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
-        return JsonResponse({'error': 'No tienes permiso para modificar esta lista'}, status=403)
+        return JsonResponse({'error': _t(request, "You don't have permission to modify this list")}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -415,11 +422,11 @@ def gform_create(request):
             new_form = form.save(commit=False)
             new_form.user = request.user
             new_form.save()
-            messages.success(request, "Formulario creado correctamente")
+            messages.success(request, _t(request, "Form created successfully"))
             return redirect('gform_edit', form_id=new_form.id)
         else:
             # Añadir mensaje de error si el formulario no es válido
-            messages.error(request, "Error al crear el formulario. Por favor, verifica los datos.")
+            messages.error(request, _t(request, "Error creating the form. Please verify the data."))
     else:
         form = GFormForm()
     
@@ -432,13 +439,13 @@ def gform_edit(request, form_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para editar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to edit this form"))
     
     if request.method == 'POST':
         form = GFormForm(request.POST, instance=gform)
         if form.is_valid():
             form.save()
-            messages.success(request, "Formulario actualizado correctamente")
+            messages.success(request, _t(request, "Form updated successfully"))
             return redirect('gform_edit', form_id=gform.id)
     else:
         form = GFormForm(instance=gform)
@@ -480,7 +487,7 @@ def gform_share_form(request, form_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("Solo el propietario puede gestionar permisos")
+        return HttpResponseForbidden(_t(request, "Only the owner can manage permissions"))
     
     # Obtener los permisos actuales del formulario
     form_permissions = FormPermission.objects.filter(form=gform).select_related('user')
@@ -507,12 +514,12 @@ def gform_delete(request, form_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("No tienes permiso para eliminar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to delete this form"))
     
     if request.method == 'POST':
         # Eliminar el formulario sin afectar al banco de preguntas
         gform.delete()
-        messages.success(request, "Formulario eliminado correctamente")
+        messages.success(request, _t(request, "Form deleted successfully"))
         return redirect('gform_list')
     
     return render(request, 'forms_google/delete_form.html', {'gform': gform})
@@ -525,7 +532,7 @@ def gform_add_question(request, form_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     form = GQuestionForm(request.POST, request.FILES)
     if form.is_valid():
@@ -597,14 +604,14 @@ def gform_add_question(request, form_id):
                 'type': question.get_question_type_display()
             })
         
-        messages.success(request, "Pregunta añadida correctamente")
+        messages.success(request, _t(request, "Question added successfully"))
         return redirect('gform_edit', form_id=gform.id)
     
     # Si hay errores en el formulario
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
-    messages.error(request, "Error al añadir la pregunta")
+    messages.error(request, _t(request, "Error adding the question"))
     return redirect('gform_edit', form_id=gform.id)
 
 @login_required
@@ -616,7 +623,7 @@ def gform_edit_question(request, question_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     form = GQuestionForm(request.POST, request.FILES, instance=question)
     if form.is_valid():
@@ -686,14 +693,14 @@ def gform_edit_question(request, question_id):
                 'type': question.get_question_type_display()
             })
         
-        messages.success(request, "Pregunta actualizada correctamente")
+        messages.success(request, _t(request, "Question updated successfully"))
         return redirect('gform_edit', form_id=gform.id)
     
     # Si hay errores en el formulario
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
-    messages.error(request, "Error al actualizar la pregunta")
+    messages.error(request, _t(request, "Error updating the question"))
     return redirect('gform_edit', form_id=gform.id)
 
 @login_required
@@ -707,7 +714,7 @@ def gform_delete_question(request, question_id):
         
         # Verificar que el usuario tenga permisos para editar
         if not gform.can_edit(request.user):
-            return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+            return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
         
         # Guardar el ID del formulario antes de eliminar la pregunta
         form_id = gform.id
@@ -717,9 +724,9 @@ def gform_delete_question(request, question_id):
         
         # Si es una solicitud AJAX, devolver JSON
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'message': 'Pregunta eliminada correctamente'})
+            return JsonResponse({'success': True, 'message': _t(request, 'Question deleted successfully')})
         
-        messages.success(request, "Pregunta eliminada correctamente del formulario")
+        messages.success(request, _t(request, "Question deleted from form successfully"))
         return redirect('gform_edit', form_id=form_id)
     except Exception as e:
         import traceback
@@ -737,13 +744,13 @@ def gform_delete_question(request, question_id):
             form_id_match = re.search(r'/forms/(\d+)/edit/', referer)
             if form_id_match:
                 form_id = form_id_match.group(1)
-                messages.error(request, f"Error al eliminar la pregunta: {str(e)}")
+                messages.error(request, f"{_t(request, 'Error deleting the question')}: {str(e)}")
                 return redirect('gform_edit', form_id=form_id)
         except:
             pass
         
         # Si todo falla, redirigir a la lista de formularios
-        messages.error(request, f"Error al eliminar la pregunta: {str(e)}")
+        messages.error(request, f"{_t(request, 'Error deleting the question')}: {str(e)}")
         return redirect('gform_list')
 
 @login_required
@@ -755,11 +762,11 @@ def gform_add_option(request, question_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     # Verificar que la pregunta sea de un tipo que admite opciones
     if question.question_type not in ['multiple_choice', 'checkbox', 'dropdown']:
-        return HttpResponseForbidden("Este tipo de pregunta no admite opciones")
+        return HttpResponseForbidden(_t(request, "This question type does not support options"))
     
     form = GOptionForm(request.POST)
     if form.is_valid():
@@ -791,14 +798,14 @@ def gform_add_option(request, question_id):
                 'text': option.text
             })
         
-        messages.success(request, "Opción añadida correctamente")
+        messages.success(request, _t(request, "Option added successfully"))
         return redirect('gform_edit', form_id=gform.id)
     
     # Si hay errores en el formulario
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
-    messages.error(request, "Error al añadir la opción")
+    messages.error(request, _t(request, "Error adding the option"))
     return redirect('gform_edit', form_id=gform.id)
 
 @login_required
@@ -811,7 +818,7 @@ def gform_edit_option(request, option_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     form = GOptionForm(request.POST, instance=option)
     if form.is_valid():
@@ -843,14 +850,14 @@ def gform_edit_option(request, option_id):
                 'text': option.text
             })
         
-        messages.success(request, "Opción actualizada correctamente")
+        messages.success(request, _t(request, "Option updated successfully"))
         return redirect('gform_edit', form_id=gform.id)
     
     # Si hay errores en el formulario
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
-    messages.error(request, "Error al actualizar la opción")
+    messages.error(request, _t(request, "Error updating the option"))
     return redirect('gform_edit', form_id=gform.id)
 
 @login_required
@@ -863,7 +870,7 @@ def gform_delete_option(request, option_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     # Si la pregunta está vinculada al banco, eliminar también la opción en el banco
     if question.bank_question:
@@ -883,7 +890,7 @@ def gform_delete_option(request, option_id):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True})
     
-    messages.success(request, "Opción eliminada correctamente")
+    messages.success(request, _t(request, "Option deleted successfully"))
     return redirect('gform_edit', form_id=gform.id)
 
 @login_required
@@ -894,7 +901,7 @@ def gform_update_question_order(request, form_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return JsonResponse({'error': 'No tienes permiso para modificar este formulario'}, status=403)
+        return JsonResponse({'error': _t(request, "You don't have permission to modify this form")}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -917,7 +924,7 @@ def gform_update_option_order(request, question_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return JsonResponse({'error': 'No tienes permiso para modificar este formulario'}, status=403)
+        return JsonResponse({'error': _t(request, "You don't have permission to modify this form")}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -952,13 +959,13 @@ def gform_toggle_publish(request, form_id):
     
     # Verificar que el usuario sea el propietario o tenga permisos de editor
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     gform.is_published = not gform.is_published
     gform.save()
     
-    status = "publicado" if gform.is_published else "despublicado"
-    messages.success(request, f"Formulario {status} correctamente")
+    status = _t(request, "published") if gform.is_published else _t(request, "unpublished")
+    messages.success(request, f"{_t(request, 'Form')} {status} {_t(request, 'successfully')}")
     
     return redirect('gform_edit', form_id=gform.id)
 
@@ -968,7 +975,7 @@ def gform_view(request, form_id):
     
     # Verificar que el formulario esté publicado o que el usuario tenga permisos para verlo
     if not gform.is_published and (request.user.is_anonymous or not gform.can_view(request.user)):
-        return HttpResponseForbidden("Este formulario no está disponible")
+        return HttpResponseForbidden(_t(request, "This form is not available"))
     
     questions = GQuestion.objects.filter(form=gform).order_by('position')
     
@@ -982,7 +989,7 @@ def gform_view(request, form_id):
     if request.method == 'POST':
         # Procesar la respuesta al formulario
         if not gform.is_published and not gform.can_respond(request.user):
-            return HttpResponseForbidden("Este formulario no está aceptando respuestas")
+            return HttpResponseForbidden(_t(request, "This form is not accepting responses"))
         
         # Crear una nueva respuesta
         response = GResponse.objects.create(
@@ -1036,7 +1043,7 @@ def gform_view(request, form_id):
                         answer.file_url = request.POST.get(url_field_name)
                         answer.save()
         
-        messages.success(request, "¡Gracias por tu respuesta!")
+        messages.success(request, _t(request, "Thank you for your response!"))
         return redirect('gform_thank_you', form_id=gform.id)
     
     return render(request, 'forms_google/view_form.html', {
@@ -1052,14 +1059,14 @@ def gform_respond(request, form_id):
     
     # Verificar que el formulario esté publicado o el usuario tenga permisos para responder
     if not gform.is_published and (request.user.is_anonymous or not gform.can_respond(request.user)):
-        messages.warning(request, "Este formulario no está disponible para respuestas")
+        messages.warning(request, _t(request, "This form is not available for responses"))
         return redirect('gform_list')
     
     questions = GQuestion.objects.filter(form=gform).order_by('position')
     
     # Verificar que el formulario tenga preguntas
     if not questions.exists():
-        messages.warning(request, "Este formulario no tiene preguntas. No se puede responder.")
+        messages.warning(request, _t(request, "This form has no questions. Cannot respond."))
         return redirect('gform_list')
     
     # Crear contexto para las preguntas de tipo escala lineal
@@ -1124,7 +1131,7 @@ def gform_respond(request, form_id):
                         answer.file_url = request.POST.get(url_field_name)
                         answer.save()
         
-        messages.success(request, "¡Gracias por tu respuesta!")
+        messages.success(request, _t(request, "Thank you for your response!"))
         return redirect('gform_thank_you', form_id=gform.id)
     
     return render(request, 'forms_google/respond_form.html', {
@@ -1144,7 +1151,7 @@ def gform_responses(request, form_id):
     
     # Verificar que el usuario tenga permisos para ver las respuestas
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para ver las respuestas de este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to view the responses to this form"))
     
     responses = GResponse.objects.filter(form=gform).order_by('-created_at')
     
@@ -1225,7 +1232,7 @@ def gform_response_detail(request, response_id):
     
     # Verificar que el usuario tenga permisos para ver las respuestas
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para ver esta respuesta")
+        return HttpResponseForbidden(_t(request, "You don't have permission to view this response"))
     
     # Obtener todas las preguntas y respuestas
     questions = GQuestion.objects.filter(form=gform).order_by('position')
@@ -1302,7 +1309,7 @@ def gform_response_data(request, response_id):
     
     # Verificar que el usuario tenga permisos para ver las respuestas
     if not gform.can_edit(request.user):
-        return JsonResponse({"error": "No tienes permiso para ver esta respuesta"}, status=403)
+        return JsonResponse({"error": _t(request, "You don't have permission to view this response")}, status=403)
     
     # Obtener todas las preguntas y respuestas
     questions = GQuestion.objects.filter(form=gform).order_by('position')
@@ -1369,7 +1376,7 @@ def export_response_to_excel(request, response_id):
     
     # Verificar que el usuario tenga permisos para ver las respuestas
     if not gform.can_edit(request.user):
-        return HttpResponse("No tienes permiso para ver esta respuesta", status=403)
+        return HttpResponse(_t(request, "You don't have permission to view this response"), status=403)
     
     # Obtener todas las preguntas y respuestas
     questions = GQuestion.objects.filter(form=gform).order_by('position')
@@ -1383,16 +1390,16 @@ def export_response_to_excel(request, response_id):
     # Crear un nuevo libro de Excel
     wb = Workbook()
     ws = wb.active
-    ws.title = f"Respuesta #{response_obj.id}"
+    ws.title = f"{_t(request, 'Response')} #{response_obj.id}"
     
     # Añadir información del formulario
-    ws['A1'] = "Formulario:"
+    ws['A1'] = f"{_t(request, 'Form')}:"
     ws['B1'] = gform.title
-    ws['A2'] = "Descripción:"
+    ws['A2'] = f"{_t(request, 'Description')}:"
     ws['B2'] = gform.description or ""
-    ws['A3'] = "Respondente:"
-    ws['B3'] = response_obj.respondent.username if response_obj.respondent else (response_obj.respondent_email or "Anónimo")
-    ws['A4'] = "Fecha de respuesta:"
+    ws['A3'] = f"{_t(request, 'Respondent')}:"
+    ws['B3'] = response_obj.respondent.username if response_obj.respondent else (response_obj.respondent_email or _t(request, "Anonymous"))
+    ws['A4'] = f"{_t(request, 'Response date')}:"
     ws['B4'] = response_obj.created_at.strftime('%d/%m/%Y %H:%M')
     
     # Crear respuesta HTTP con el archivo Excel
@@ -1418,7 +1425,7 @@ def gform_save_question_to_bank(request, question_id):
     
     # Verificar que el usuario tenga permisos para editar
     if not gform.can_edit(request.user):
-        return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+        return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
     
     try:
         # Generar el hash para esta pregunta
@@ -1434,7 +1441,7 @@ def gform_save_question_to_bank(request, question_id):
         if existing_question:
             # Si ya existe, usar esa en lugar de crear una nueva
             bank_question = existing_question
-            message = "La pregunta ya existía en el banco y ha sido recuperada"
+            message = _t(request, "Question already existed in the bank and has been recovered")
         else:
             # Crear una nueva pregunta en el banco
             bank_question = BankQuestion(
@@ -1455,7 +1462,7 @@ def gform_save_question_to_bank(request, question_id):
                 bank_question.image = question.image
                 
             bank_question.save()
-            message = "Pregunta guardada en el banco correctamente"
+            message = _t(request, "Question saved to bank successfully")
         
         # Si la pregunta tiene opciones, verificar si ya existen o crearlas
         if question.question_type in ['multiple_choice', 'checkbox', 'dropdown']:
@@ -1620,7 +1627,7 @@ def gform_question_bank_edit(request, question_id):
         
         return JsonResponse({
             'success': True,
-            'message': 'Pregunta actualizada correctamente'
+            'message': 'Question updated successfully'
         })
     except Exception as e:
         return JsonResponse({
@@ -1651,7 +1658,7 @@ def gform_question_bank_delete(request, question_id):
         
         return JsonResponse({
             'success': True,
-            'message': 'Pregunta eliminada correctamente del banco'
+            'message': 'Question deleted from bank successfully'
         })
     except Exception as e:
         return JsonResponse({
@@ -1670,7 +1677,7 @@ def gform_add_from_bank(request, form_id, question_id):
         
         # Verificar que el usuario tenga permisos para editar
         if not form.can_edit(request.user):
-            return HttpResponseForbidden("No tienes permiso para modificar este formulario")
+            return HttpResponseForbidden(_t(request, "You don't have permission to modify this form"))
         
         # Determinar el orden de la nueva pregunta
         max_position = GQuestion.objects.filter(form=form).aggregate(models.Max('position'))['position__max'] or 0
@@ -1756,7 +1763,7 @@ def gform_questions_json(request, form_id):
     
     # Verificar que el usuario tenga permisos para ver
     if not gform.can_view(request.user):
-        return JsonResponse({'success': False, 'error': 'No tienes permiso para ver este formulario'}, status=403)
+        return JsonResponse({'success': False, 'error': _t(request, "You don't have permission to view this form")}, status=403)
     
     # Obtener todas las preguntas del formulario
     questions = GQuestion.objects.filter(form=gform).order_by('position')
@@ -1861,7 +1868,7 @@ def gform_add_permission(request, form_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("Solo el propietario puede gestionar permisos")
+        return HttpResponseForbidden(_t(request, "Only the owner can manage permissions"))
     
     form = FormPermissionForm(request.POST)
     if form.is_valid():
@@ -1872,13 +1879,13 @@ def gform_add_permission(request, form_id):
             
             # Verificar que no se esté intentando dar permisos al propietario
             if user == gform.user:
-                messages.error(request, "No puedes añadir permisos al propietario del formulario")
+                messages.error(request, _t(request, "You cannot add permissions to the form owner"))
                 return redirect('gform_share_form', form_id=gform.id)
             
             # Verificar que el permiso sea de editor solo si el usuario tiene cuenta
             permission_type = form.cleaned_data['permission_type']
             if permission_type == 'editor' and not user.is_authenticated:
-                messages.error(request, "Solo usuarios con cuenta pueden tener permisos de editor")
+                messages.error(request, _t(request, "Only registered users can have editor permissions"))
                 return redirect('gform_share_form', form_id=gform.id)
             
             # Crear o actualizar el permiso
@@ -1889,19 +1896,19 @@ def gform_add_permission(request, form_id):
             )
             
             if created:
-                messages.success(request, f"Permiso añadido para {user.username}")
+                messages.success(request, f"{_t(request, 'Permission added for')} {user.username}")
             else:
-                messages.success(request, f"Permiso actualizado para {user.username}")
+                messages.success(request, f"{_t(request, 'Permission updated for')} {user.username}")
             
         except User.DoesNotExist:
-            messages.error(request, f"No existe un usuario con el correo electrónico {email}")
+            messages.error(request, f"{_t(request, 'No user found with email')} {email}")
         
         return redirect('gform_share_form', form_id=gform.id)
     
     # Si hay errores en el formulario
     for field, errors in form.errors.items():
         for error in errors:
-            messages.error(request, f"Error en {field}: {error}")
+            messages.error(request, f"{_t(request, 'Error in')} {field}: {error}")
     
     return redirect('gform_share_form', form_id=gform.id)
 
@@ -1914,12 +1921,12 @@ def gform_remove_permission(request, permission_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("Solo el propietario puede gestionar permisos")
+        return HttpResponseForbidden(_t(request, "Only the owner can manage permissions"))
     
     user_name = permission.user.username
     permission.delete()
     
-    messages.success(request, f"Permiso eliminado para {user_name}")
+    messages.success(request, f"{_t(request, 'Permission removed for')} {user_name}")
     return redirect('gform_share_form', form_id=gform.id)
 
 @login_required
@@ -1930,7 +1937,7 @@ def gform_create_share_link(request, form_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("Solo el propietario puede crear enlaces de compartir")
+        return HttpResponseForbidden(_t(request, "Only the owner can create share links"))
     
     form = FormShareLinkForm(request.POST)
     if form.is_valid():
@@ -1948,13 +1955,13 @@ def gform_create_share_link(request, form_id):
         
         share_link.save()
         
-        messages.success(request, "Enlace de compartir creado correctamente")
+        messages.success(request, _t(request, "Share link created successfully"))
         return redirect('gform_share_form', form_id=gform.id)
     
     # Si hay errores en el formulario
     for field, errors in form.errors.items():
         for error in errors:
-            messages.error(request, f"Error en {field}: {error}")
+            messages.error(request, f"{_t(request, 'Error in')} {field}: {error}")
     
     return redirect('gform_share_form', form_id=gform.id)
 
@@ -1967,11 +1974,11 @@ def gform_delete_share_link(request, link_id):
     
     # Verificar que el usuario sea el propietario
     if gform.user != request.user:
-        return HttpResponseForbidden("Solo el propietario puede eliminar enlaces de compartir")
+        return HttpResponseForbidden(_t(request, "Only the owner can delete share links"))
     
     share_link.delete()
     
-    messages.success(request, "Enlace de compartir eliminado correctamente")
+    messages.success(request, _t(request, "Share link deleted successfully"))
     return redirect('gform_share_form', form_id=gform.id)
 
 # Vamos a revisar y corregir la función que maneja los enlaces compartidos
@@ -1999,7 +2006,7 @@ def gform_shared_link(request, token):
         print(f"Permiso asignado: {permission.permission_type} para usuario {request.user.username} en formulario {gform.id}")
         
         permission_display = dict(FormPermission.PERMISSION_CHOICES).get(share_link.permission_type, share_link.permission_type)
-        messages.success(request, f"Ahora tienes permisos de {permission_display.lower()} para el formulario '{gform.title}'")
+        messages.success(request, f"{_t(request, 'You now have')} {permission_display.lower()} {_t(request, 'permissions for form')} '{gform.title}'")
         
         # Redirigir según el tipo de permiso
         if share_link.permission_type == 'editor':
@@ -2013,7 +2020,7 @@ def gform_shared_link(request, token):
         if share_link.permission_type == 'editor':
             # Guardar la URL de redirección en la sesión
             request.session['next'] = reverse('gform_edit', kwargs={'form_id': gform.id})
-            messages.info(request, "Debes iniciar sesión para editar este formulario")
+            messages.info(request, _t(request, "You must log in to edit this form"))
             return redirect('login')
         
         # Para responder o ver, redirigir directamente
@@ -2029,7 +2036,7 @@ def gform_add_shared_link(request):
     shared_link = request.POST.get('shared_link', '').strip()
     
     if not shared_link:
-        messages.error(request, "Debes proporcionar un enlace válido")
+        messages.error(request, _t(request, "You must provide a valid link"))
         return redirect('gform_list')
     
     # Extraer el token del enlace
@@ -2037,7 +2044,7 @@ def gform_add_shared_link(request):
     token_match = re.search(r'/shared/([a-f0-9-]+)', shared_link)
     
     if not token_match:
-        messages.error(request, "El enlace proporcionado no es válido")
+        messages.error(request, _t(request, "The provided link is not valid"))
         return redirect('gform_list')
     
     token = token_match.group(1)
@@ -2048,14 +2055,14 @@ def gform_add_shared_link(request):
         
         # Verificar que el enlace sea válido
         if not share_link.is_valid():
-            messages.error(request, "El enlace ha expirado")
+            messages.error(request, _t(request, "The link has expired"))
             return redirect('gform_list')
         
         gform = share_link.form
         
         # Verificar que no sea el propietario
         if gform.user == request.user:
-            messages.warning(request, "No puedes agregar tu propio formulario como compartido")
+            messages.warning(request, _t(request, "You cannot add your own form as shared"))
             return redirect('gform_list')
         
         # Verificar si ya tiene permisos
@@ -2070,13 +2077,13 @@ def gform_add_shared_link(request):
             if new_level > current_level:
                 existing_permission.permission_type = share_link.permission_type
                 existing_permission.save()
-                messages.success(request, f"Tus permisos para '{gform.title}' han sido actualizados a {share_link.get_permission_type_display()}")
+                messages.success(request, f"{_t(request, 'Your permissions for')} '{gform.title}' {_t(request, 'have been updated to')} {share_link.get_permission_type_display()}")
             else:
-                messages.info(request, f"Ya tienes permisos para '{gform.title}'")
+                messages.info(request, f"{_t(request, 'You already have permissions for')} '{gform.title}'")
         else:
             # Si el permiso es de editor, verificar que el usuario tenga cuenta
             if share_link.permission_type == 'editor' and not request.user.is_authenticated:
-                messages.error(request, "Solo usuarios con cuenta pueden tener permisos de editor")
+                messages.error(request, _t(request, "Only registered users can have editor permissions"))
                 return redirect('gform_list')
             
             # Crear el permiso
@@ -2085,12 +2092,12 @@ def gform_add_shared_link(request):
                 user=request.user,
                 permission_type=share_link.permission_type
             )
-            messages.success(request, f"Formulario '{gform.title}' agregado a tus formularios compartidos")
+            messages.success(request, f"{_t(request, 'Form')} '{gform.title}' {_t(request, 'added to your shared forms')}")
         
         return redirect('gform_list')
     
     except (ValueError, FormShareLink.DoesNotExist):
-        messages.error(request, "El enlace proporcionado no es válido")
+        messages.error(request, _t(request, "The provided link is not valid"))
         return redirect('gform_list')
 
 @login_required
@@ -2100,13 +2107,13 @@ def gform_remove_shared(request, form_id):
     
     # Verificar que no sea el propietario
     if gform.user == request.user:
-        messages.warning(request, "No puedes eliminar tu propio formulario de compartidos")
+        messages.warning(request, _t(request, "You cannot remove your own form from shared"))
         return redirect('gform_list')
     
     # Eliminar el permiso
     FormPermission.objects.filter(form=gform, user=request.user).delete()
     
-    messages.success(request, f"Formulario '{gform.title}' eliminado de tus formularios compartidos")
+    messages.success(request, f"{_t(request, 'Form')} '{gform.title}' {_t(request, 'removed from your shared forms')}")
     return redirect('gform_list')
 
 def change_language(request):
