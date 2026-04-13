@@ -363,6 +363,22 @@
                 
                 {% elif question.question_type == 'time' %}
                 <input type="time" class="form-control" id="question_{{ question.id }}" name="question_{{ question.id }}" {% if question.is_required %}required{% endif %}>
+
+                {% elif question.question_type == 'pass_fail' %}
+                <div class="pass-fail-group" role="group" aria-label="{% trans_tag 'Pass / Fail / N/A' %}">
+                  <input type="radio" class="pass-fail-input" id="pf_pass_{{ question.id }}" name="question_{{ question.id }}" value="pass" {% if question.is_required %}required{% endif %}>
+                  <label class="pass-fail-btn pass-btn" for="pf_pass_{{ question.id }}">
+                    <i class="bi bi-check-lg"></i> {% trans_tag "Pass" %}
+                  </label>
+                  <input type="radio" class="pass-fail-input" id="pf_fail_{{ question.id }}" name="question_{{ question.id }}" value="fail">
+                  <label class="pass-fail-btn fail-btn" for="pf_fail_{{ question.id }}">
+                    <i class="bi bi-x-lg"></i> {% trans_tag "Fail" %}
+                  </label>
+                  <input type="radio" class="pass-fail-input" id="pf_na_{{ question.id }}" name="question_{{ question.id }}" value="na">
+                  <label class="pass-fail-btn na-btn" for="pf_na_{{ question.id }}">
+                    <i class="bi bi-dash"></i> {% trans_tag "N/A" %}
+                  </label>
+                </div>
                 
                 {% endif %}
                 

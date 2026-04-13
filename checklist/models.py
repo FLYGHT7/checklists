@@ -51,14 +51,15 @@ class Task(models.Model):
 class BankQuestion(models.Model):
   """Modelo para preguntas guardadas en el banco, independientes de cualquier formulario"""
   QUESTION_TYPES = (
-      ('short_text', 'Texto Corto'),
-      ('paragraph', 'Párrafo'),
-      ('multiple_choice', 'Opción Múltiple'),
-      ('checkbox', 'Casillas de Verificación'),
-      ('dropdown', 'Lista Desplegable'),
-      ('linear_scale', 'Escala Lineal'),
-      ('date', 'Fecha'),
-      ('time', 'Hora'),
+      ('short_text', 'Short Text'),
+      ('paragraph', 'Paragraph'),
+      ('multiple_choice', 'Multiple Choice'),
+      ('checkbox', 'Checkboxes'),
+      ('dropdown', 'Dropdown'),
+      ('linear_scale', 'Linear Scale'),
+      ('date', 'Date'),
+      ('time', 'Time'),
+      ('pass_fail', 'Pass / Fail / N/A'),
   )
   
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -251,14 +252,15 @@ class FormShareLink(models.Model):
 class GQuestion(models.Model):
   """Modelo para preguntas del formulario"""
   QUESTION_TYPES = (
-      ('short_text', 'Texto Corto'),
-      ('paragraph', 'Párrafo'),
-      ('multiple_choice', 'Opción Múltiple'),
-      ('checkbox', 'Casillas de Verificación'),
-      ('dropdown', 'Lista Desplegable'),
-      ('linear_scale', 'Escala Lineal'),
-      ('date', 'Fecha'),
-      ('time', 'Hora'),
+      ('short_text', 'Short Text'),
+      ('paragraph', 'Paragraph'),
+      ('multiple_choice', 'Multiple Choice'),
+      ('checkbox', 'Checkboxes'),
+      ('dropdown', 'Dropdown'),
+      ('linear_scale', 'Linear Scale'),
+      ('date', 'Date'),
+      ('time', 'Time'),
+      ('pass_fail', 'Pass / Fail / N/A'),
   )
   
   form = models.ForeignKey(GForm, on_delete=models.CASCADE, related_name='questions')

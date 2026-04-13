@@ -140,6 +140,19 @@
                         <div class="response-no-answer">{% trans_tag "No response" %}</div>
                         {% endif %}
                     </div>
+
+                    {% elif question.question_type == 'pass_fail' %}
+                    <div class="mt-3">
+                        {% if answer.text_answer == 'pass' %}
+                        <span class="pass-fail-badge pass-badge"><i class="bi bi-check-lg me-1"></i>{% trans_tag "Pass" %}</span>
+                        {% elif answer.text_answer == 'fail' %}
+                        <span class="pass-fail-badge fail-badge"><i class="bi bi-x-lg me-1"></i>{% trans_tag "Fail" %}</span>
+                        {% elif answer.text_answer == 'na' %}
+                        <span class="pass-fail-badge na-badge"><i class="bi bi-dash me-1"></i>{% trans_tag "N/A" %}</span>
+                        {% else %}
+                        <div class="response-no-answer">{% trans_tag "No response" %}</div>
+                        {% endif %}
+                    </div>
                     
                     {% elif question.question_type in 'multiple_choice,dropdown,checkbox' %}
                     <div class="mt-3">
