@@ -50,6 +50,7 @@ build/
 .cursor/
 skills-lock.json
 .augment/
+
 # Archivos de despliegue
 *.bak
 *.backup
