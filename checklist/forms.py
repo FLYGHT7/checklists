@@ -224,6 +224,20 @@ class GFormResponseForm(forms.Form):
                     widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'})
                 )
             
+            elif question.question_type == 'pass_fail':
+                choices = [
+                    ('pass', 'Pass'),
+                    ('fail', 'Fail'),
+                    ('na', 'N/A'),
+                ]
+                self.fields[field_name] = forms.ChoiceField(
+                    label=question.text,
+                    help_text=question.help_text,
+                    required=question.is_required,
+                    choices=choices,
+                    widget=forms.RadioSelect(attrs={'class': 'pass-fail-input'})
+                )
+            
             # Añadir campos para archivos adjuntos en respuestas solo si la pregunta lo permite
             if question.allow_attachments:
                 file_field_name = f'file_{question.id}'

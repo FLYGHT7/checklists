@@ -449,6 +449,10 @@ TRANSLATIONS_ES = {
     "Linear Scale": "Escala Lineal",
     "Date": "Fecha",
     "Time": "Hora",
+    "Pass / Fail / N/A": "Aprobado / Reprobado / N/A",
+    "Pass": "Aprobado",
+    "Fail": "Reprobado",
+    "N/A": "N/A",
     "Question text": "Texto de la pregunta",
     "Write your question": "Escribe tu pregunta",
     "Help text (optional)": "Texto de ayuda (opcional)",
@@ -510,6 +514,10 @@ TRANSLATIONS_ES = {
     "Linear Scale": "Escala Lineal",
     "Date": "Fecha",
     "Time": "Hora",
+    "Pass / Fail / N/A": "Aprobado / Reprobado / N/A",
+    "Pass": "Aprobado",
+    "Fail": "Reprobado",
+    "N/A": "N/A",
     
     # Información de preguntas
     "Used in": "Usada en",
