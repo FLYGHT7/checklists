@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.utils.translation import get_language
 from .models import TodoList, Task, GForm, GQuestion, GOption, FormPermission, FormShareLink
+from .translation import translate
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -22,14 +24,19 @@ class TodoListForm(forms.ModelForm):
         model = TodoList
         fields = ['name']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la lista'})
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'List name'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['name'].widget.attrs['placeholder'] = translate('List name', lang)
 
 class TaskForm(forms.ModelForm):
     STATUS_CHOICES = [
-        ('todo', 'Por Hacer'),
-        ('progress', 'En Progreso'),
-        ('done', 'Completado')
+        ('todo', 'To Do'),
+        ('progress', 'In Progress'),
+        ('done', 'Completed')
     ]
     
     status = forms.ChoiceField(
@@ -42,7 +49,7 @@ class TaskForm(forms.ModelForm):
         widget=forms.DateTimeInput(attrs={
             'class': 'form-control',
             'type': 'datetime-local',
-            'placeholder': 'Fecha de Entrega'
+            'placeholder': 'Due date'
         })
     )
     
@@ -52,14 +59,26 @@ class TaskForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Título de la tarea'
+                'placeholder': 'Task title'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Descripción (opcional)',
+                'placeholder': 'Description (optional)',
                 'rows': 3
             })
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['title'].widget.attrs['placeholder'] = translate('Task title', lang)
+        self.fields['description'].widget.attrs['placeholder'] = translate('Description (optional)', lang)
+        self.fields['due_date'].widget.attrs['placeholder'] = translate('Due date', lang)
+        self.fields['status'].choices = [
+            ('todo', translate('To Do', lang)),
+            ('progress', translate('In Progress', lang)),
+            ('done', translate('Completed', lang)),
+        ]
 
 # Formularios para Google Forms
 class GFormForm(forms.ModelForm):
@@ -68,10 +87,16 @@ class GFormForm(forms.ModelForm):
         model = GForm
         fields = ['title', 'description', 'is_published']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título del formulario'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descripción (opcional)', 'rows': 3}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Form title'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Description (optional)', 'rows': 3}),
             'is_published': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['title'].widget.attrs['placeholder'] = translate('Form title', lang)
+        self.fields['description'].widget.attrs['placeholder'] = translate('Description (optional)', lang)
 
 class GQuestionForm(forms.ModelForm):
     """Formulario para crear/editar preguntas"""
@@ -80,16 +105,24 @@ class GQuestionForm(forms.ModelForm):
         fields = ['question_type', 'text', 'help_text', 'is_required', 'allow_attachments', 'min_value', 'max_value', 'min_label', 'max_label', 'image']
         widgets = {
             'question_type': forms.Select(attrs={'class': 'form-select'}),
-            'text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Texto de la pregunta'}),
-            'help_text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Texto de ayuda (opcional)'}),
+            'text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Question text'}),
+            'help_text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Help text (optional)'}),
             'is_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'allow_attachments': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'min_value': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '10'}),
             'max_value': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '10'}),
-            'min_label': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Etiqueta mínima'}),
-            'max_label': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Etiqueta máxima'}),
+            'min_label': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Minimum label'}),
+            'max_label': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maximum label'}),
             'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['text'].widget.attrs['placeholder'] = translate('Question text', lang)
+        self.fields['help_text'].widget.attrs['placeholder'] = translate('Help text (optional)', lang)
+        self.fields['min_label'].widget.attrs['placeholder'] = translate('Minimum label', lang)
+        self.fields['max_label'].widget.attrs['placeholder'] = translate('Maximum label', lang)
 
 class GOptionForm(forms.ModelForm):
     """Formulario para crear/editar opciones"""
@@ -97,8 +130,13 @@ class GOptionForm(forms.ModelForm):
         model = GOption
         fields = ['text']
         widgets = {
-            'text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Texto de la opción'})
+            'text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Option text'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['text'].widget.attrs['placeholder'] = translate('Option text', lang)
 
 class GFormResponseForm(forms.Form):
     """Formulario dinámico para responder a un formulario"""
@@ -106,6 +144,7 @@ class GFormResponseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         form_instance = kwargs.pop('form_instance')
         super(GFormResponseForm, self).__init__(*args, **kwargs)
+        lang = get_language() or 'es'
         
         # Agregar campos dinámicamente basados en las preguntas del formulario
         for question in form_instance.questions.all():
@@ -148,7 +187,7 @@ class GFormResponseForm(forms.Form):
                 )
             
             elif question.question_type == 'dropdown':
-                choices = [('', 'Selecciona una opción')] + [(option.id, option.text) for option in question.options.all()]
+                choices = [('', translate('Select an option', lang))] + [(option.id, option.text) for option in question.options.all()]
                 self.fields[field_name] = forms.ChoiceField(
                     label=question.text,
                     help_text=question.help_text,
@@ -203,49 +242,68 @@ class GFormResponseForm(forms.Form):
             if question.allow_attachments:
                 file_field_name = f'file_{question.id}'
                 self.fields[file_field_name] = forms.FileField(
-                    label="Adjuntar imagen o video (opcional)",
+                    label=translate("Attach image or video (optional)", lang),
                     required=False,
                     widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*,video/*'})
                 )
                 
                 url_field_name = f'url_{question.id}'
                 self.fields[url_field_name] = forms.URLField(
-                    label="O proporciona una URL de imagen/video (opcional)",
+                    label=translate("Or provide an image/video URL (optional)", lang),
                     required=False,
-                    widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://ejemplo.com/imagen.jpg'})
+                    widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://example.com/image.jpg'})
                 )
 
 # Formularios para permisos y compartir
 class FormPermissionForm(forms.Form):
     """Formulario para añadir permisos a usuarios"""
     user_email = forms.EmailField(
-        label="Correo electrónico del usuario",
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'usuario@ejemplo.com'})
+        label="User email",
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'user@example.com'})
     )
     
     permission_type = forms.ChoiceField(
-        label="Tipo de permiso",
+        label="Permission type",
         choices=FormPermission.PERMISSION_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['user_email'].label = translate('User email', lang)
+        self.fields['user_email'].widget.attrs['placeholder'] = translate('user@example.com', lang)
+        self.fields['permission_type'].label = translate('Permission type', lang)
+
 class FormShareLinkForm(forms.Form):
     """Formulario para crear enlaces de compartir"""
     permission_type = forms.ChoiceField(
-        label="Tipo de permiso",
+        label="Permission type",
         choices=FormShareLink.PERMISSION_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     EXPIRATION_CHOICES = [
-        ('never', 'Nunca expira'),
-        ('1d', '1 día'),
-        ('7d', '7 días'),
-        ('30d', '30 días'),
+        ('never', 'Never expires'),
+        ('1d', '1 day'),
+        ('7d', '7 days'),
+        ('30d', '30 days'),
     ]
     
     expires_in = forms.ChoiceField(
-        label="Expiración del enlace",
+        label="Link expiration",
         choices=EXPIRATION_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        lang = get_language() or 'es'
+        self.fields['permission_type'].label = translate('Permission type', lang)
+        self.fields['expires_in'].label = translate('Link expiration', lang)
+        self.fields['expires_in'].choices = [
+            ('never', translate('Never expires', lang)),
+            ('1d', translate('1 day', lang)),
+            ('7d', translate('7 days', lang)),
+            ('30d', translate('30 days', lang)),
+        ]
