@@ -49,6 +49,7 @@ build/
 .claude/
 .cursor/
 skills-lock.json
+.augment/
 
 # Archivos de despliegue
 *.bak
@@ -65,4 +66,4 @@ yarn.lock
 docker-compose.override.yml
 
 #pr and plans md
-doc/
+docs/
