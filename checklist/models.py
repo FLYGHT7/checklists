@@ -18,9 +18,9 @@ class TodoList(models.Model):
 # Models task
 class Task(models.Model):
   STATUS_CHOICES = (
-      ('todo', 'Por Hacer'),
-      ('progress', 'En Progreso'),
-      ('done', 'Completado'),
+      ('todo', 'To Do'),
+      ('progress', 'In Progress'),
+      ('done', 'Completed'),
   )
   
   title = models.CharField(max_length=255)
@@ -51,14 +51,14 @@ class Task(models.Model):
 class BankQuestion(models.Model):
   """Modelo para preguntas guardadas en el banco, independientes de cualquier formulario"""
   QUESTION_TYPES = (
-      ('short_text', 'Texto Corto'),
-      ('paragraph', 'Párrafo'),
-      ('multiple_choice', 'Opción Múltiple'),
-      ('checkbox', 'Casillas de Verificación'),
-      ('dropdown', 'Lista Desplegable'),
-      ('linear_scale', 'Escala Lineal'),
-      ('date', 'Fecha'),
-      ('time', 'Hora'),
+      ('short_text', 'Short Text'),
+      ('paragraph', 'Paragraph'),
+      ('multiple_choice', 'Multiple Choice'),
+      ('checkbox', 'Checkboxes'),
+      ('dropdown', 'Dropdown'),
+      ('linear_scale', 'Linear Scale'),
+      ('date', 'Date'),
+      ('time', 'Time'),
   )
   
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -77,7 +77,7 @@ class BankQuestion(models.Model):
   image = models.ImageField(upload_to='bank_question_images/', blank=True, null=True)
   
   # Campo para controlar si se permiten adjuntos
-  allow_attachments = models.BooleanField(default=False, help_text="Permitir que los usuarios adjunten archivos o URLs a esta pregunta")
+  allow_attachments = models.BooleanField(default=False, help_text="Allow users to attach files or URLs to this question")
   
   # Metadatos
   created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bank_questions_created')
@@ -210,8 +210,8 @@ class FormPermission(models.Model):
   """Modelo para gestionar permisos de usuarios en formularios"""
   PERMISSION_CHOICES = (
       ('editor', 'Editor'),
-      ('responder', 'Respondedor'),
-      ('viewer', 'Visualizador'),
+      ('responder', 'Responder'),
+      ('viewer', 'Viewer'),
   )
   
   form = models.ForeignKey(GForm, on_delete=models.CASCADE, related_name='permissions')
@@ -229,8 +229,8 @@ class FormShareLink(models.Model):
   """Modelo para enlaces de compartir formularios con usuarios no registrados"""
   PERMISSION_CHOICES = (
       ('editor', 'Editor'),
-      ('responder', 'Respondedor'),
-      ('viewer', 'Visualizador'),
+      ('responder', 'Responder'),
+      ('viewer', 'Viewer'),
   )
   
   form = models.ForeignKey(GForm, on_delete=models.CASCADE, related_name='share_links')
@@ -251,14 +251,14 @@ class FormShareLink(models.Model):
 class GQuestion(models.Model):
   """Modelo para preguntas del formulario"""
   QUESTION_TYPES = (
-      ('short_text', 'Texto Corto'),
-      ('paragraph', 'Párrafo'),
-      ('multiple_choice', 'Opción Múltiple'),
-      ('checkbox', 'Casillas de Verificación'),
-      ('dropdown', 'Lista Desplegable'),
-      ('linear_scale', 'Escala Lineal'),
-      ('date', 'Fecha'),
-      ('time', 'Hora'),
+      ('short_text', 'Short Text'),
+      ('paragraph', 'Paragraph'),
+      ('multiple_choice', 'Multiple Choice'),
+      ('checkbox', 'Checkboxes'),
+      ('dropdown', 'Dropdown'),
+      ('linear_scale', 'Linear Scale'),
+      ('date', 'Date'),
+      ('time', 'Time'),
   )
   
   form = models.ForeignKey(GForm, on_delete=models.CASCADE, related_name='questions')
@@ -278,7 +278,7 @@ class GQuestion(models.Model):
   image = models.ImageField(upload_to='gform_question_images/', blank=True, null=True)
   
   # Campo para controlar si se permiten adjuntos
-  allow_attachments = models.BooleanField(default=False, help_text="Permitir que los usuarios adjunten archivos o URLs a esta pregunta")
+  allow_attachments = models.BooleanField(default=False, help_text="Allow users to attach files or URLs to this question")
   
   # Relación con el banco de preguntas (opcional)
   bank_question = models.ForeignKey(BankQuestion, on_delete=models.SET_NULL, null=True, blank=True, related_name='form_questions')

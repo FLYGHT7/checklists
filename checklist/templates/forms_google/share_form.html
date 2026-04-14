@@ -2,7 +2,7 @@
 {% load static %}
 {% load custom_i18n %}
 
-{% block title %}Compartir Formulario - {{ form.title }}{% endblock %}
+{% block title %}{% trans_tag "Share Form" %} - {{ form.title }}{% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="{% static 'css/forms_google.css' %}?v={% now 'U' %}">
