@@ -10,6 +10,10 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    # Email verification
+    path('verify-email/sent/', views.verify_email_sent, name='verify_email_sent'),
+    path('verify-email/resend/', views.verify_email_resend, name='verify_email_resend'),
+    path('verify-email/<uuid:token>/', views.verify_email, name='verify_email'),
     path('dashboard/', views.dashboard, name='dashboard'),
     # Añadir esta línea a urlpatterns en urls.py
     path('todo_list/<int:list_id>/stats/', views.todo_list_stats, name='todo_list_stats'),

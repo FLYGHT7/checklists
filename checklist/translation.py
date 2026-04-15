@@ -808,6 +808,18 @@ TRANSLATIONS_ES = {
     # Traducciones para block titles de templates
     "Thank you for your response": "Gracias por tu respuesta",
     "Help text (optional)": "Texto de ayuda (opcional)",
+    # Email verification
+    "Check your inbox": "Revisa tu bandeja de entrada",
+    "We sent you a verification email. Click the link inside to activate your account.": "Te enviamos un correo de verificaci\u00f3n. Haz clic en el enlace para activar tu cuenta.",
+    "Resend verification email": "Reenviar correo de verificaci\u00f3n",
+    "Email verified successfully": "Correo verificado exitosamente",
+    "Verification link expired": "El enlace de verificaci\u00f3n ha expirado",
+    "Verification email sent": "Correo de verificaci\u00f3n enviado",
+    "Tips": "Consejos",
+    "Check your spam or junk folder": "Revisa tu carpeta de spam o correo no deseado",
+    "The link expires in 24 hours": "El enlace expira en 24 horas",
+    "Make sure you registered with the right email": "Aseg\u00farate de haberte registrado con el correo correcto",
+    "Back to login": "Volver al inicio de sesi\u00f3n",
 }
 
 def translate(text, language):

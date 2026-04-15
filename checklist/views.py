@@ -8,6 +8,8 @@ from django.utils import timezone
 from datetime import timedelta, date
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import json
 import hashlib
 import os
@@ -17,7 +19,8 @@ from django.urls import reverse
 from .translation import translate
 from .models import (
     TodoList, Task, GForm, GQuestion, GOption, GResponse, GAnswer, GSelectedOption,
-    BankQuestion, BankOption, FormPermission, FormShareLink
+    BankQuestion, BankOption, FormPermission, FormShareLink,
+    EmailVerification, UserProfile
 )
 from .forms import (
     UserRegistrationForm, TodoListForm, TaskForm, GFormForm, GQuestionForm, GOptionForm, 
@@ -115,15 +118,80 @@ def todo_list_stats(request, list_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+def _send_verification_email(request, user, ev):
+    """Send branded HTML verification email. Silently logs on SMTP failure."""
+    lang = request.session.get('language', 'es')
+    verify_url = request.build_absolute_uri(
+        reverse('verify_email', kwargs={'token': ev.token})
+    )
+    context = {'user': user, 'verify_url': verify_url, 'lang': lang}
+    subject_es = 'Verifica tu correo electrónico — DragTask'
+    subject_en = 'Verify your email address — DragTask'
+    subject = subject_es if lang == 'es' else subject_en
+    html_body = render_to_string('emails/verify_email.html', context, request=request)
+    txt_body = render_to_string('emails/verify_email.txt', context, request=request)
+    try:
+        send_mail(
+            subject=subject,
+            message=txt_body,
+            html_message=html_body,
+            from_email=None,  # uses DEFAULT_FROM_EMAIL
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error('Error sending verification email to %s: %s', user.email, exc)
+
+
 def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            login(request, form.save())
-            return redirect('dashboard')
+            user = form.save()
+            # Create verification token and send email
+            ev = EmailVerification.objects.create(user=user)
+            _send_verification_email(request, user, ev)
+            login(request, user)
+            return redirect('verify_email_sent')
     else:
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
+
+
+def verify_email_sent(request):
+    """Page shown after registration — tells user to check their inbox."""
+    return render(request, 'verify_email_sent.html')
+
+
+def verify_email(request, token):
+    """Validate the verification token and activate the account."""
+    ev = get_object_or_404(EmailVerification, token=token)
+    if ev.is_valid():
+        ev.is_used = True
+        ev.save(update_fields=['is_used'])
+        profile, _ = UserProfile.objects.get_or_create(user=ev.user)
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        messages.success(request, _t(request, 'Email verified successfully'))
+        login(request, ev.user)
+        return redirect('dashboard')
+    else:
+        messages.error(request, _t(request, 'Verification link expired'))
+        return redirect('verify_email_sent')
+
+
+@login_required
+def verify_email_resend(request):
+    """Invalidate old tokens and send a fresh verification email."""
+    if request.method == 'POST':
+        user = request.user
+        # Invalidate all previous unused tokens
+        EmailVerification.objects.filter(user=user, is_used=False).update(is_used=True)
+        ev = EmailVerification.objects.create(user=user)
+        _send_verification_email(request, user, ev)
+        messages.success(request, _t(request, 'Verification email sent'))
+    return redirect('verify_email_sent')
 
 def login_view(request):
     if request.method == 'POST':
