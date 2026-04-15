@@ -351,6 +351,9 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     email_verified = models.BooleanField(default=False)
     avatar_url = models.URLField(blank=True, null=True)
+    # Legacy fields that exist in the DB — kept here so INSERT doesn't fail
+    bio = models.CharField(max_length=160, blank=True, default='')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
     def get_avatar_url(self):
         """Returns custom avatar URL or Gravatar fallback."""
