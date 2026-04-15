@@ -2242,28 +2242,65 @@ def settings_view(request):
 
 @login_required
 def settings_avatar(request):
-    """AJAX: upload or remove user avatar (stored in Supabase Storage)."""
+    """AJAX: upload or remove user avatar.
+    Dev  → saved to media/avatars/ (local filesystem, no external service).
+    Prod → uploaded to Supabase Storage.
+    """
     from django.conf import settings as django_settings
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        # Remove avatar
+        # ── Remove avatar ──────────────────────────────────────────
         if action == 'remove':
+            # Delete local file if it exists
+            if profile.avatar_url and profile.avatar_url.startswith('/media/'):
+                local_path = os.path.join(django_settings.MEDIA_ROOT,
+                                          profile.avatar_url.lstrip('/media/').lstrip('/'))
+                if os.path.exists(local_path):
+                    os.remove(local_path)
             profile.avatar_url = None
             profile.save(update_fields=['avatar_url'])
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'ok': True, 'url': profile.get_avatar_url()})
             return redirect('settings')
 
-        # Upload avatar
+        # ── Upload avatar ──────────────────────────────────────────
         file = request.FILES.get('avatar')
         if not file:
             return JsonResponse({'ok': False, 'error': _t(request, 'No file provided.')}, status=400)
         if file.size > 2 * 1024 * 1024:
             return JsonResponse({'ok': False, 'error': _t(request, 'File exceeds 2 MB limit.')}, status=400)
 
+        storage_backend = getattr(django_settings, 'AVATAR_STORAGE', 'local')
+
+        # ── LOCAL (development) ────────────────────────────────────
+        if storage_backend == 'local':
+            import imghdr
+            # Detect extension from actual content (safe — no trust of client filename)
+            ext = imghdr.what(file) or 'jpg'
+            if ext not in ('jpeg', 'jpg', 'png', 'webp', 'gif'):
+                ext = 'jpg'
+            if ext == 'jpeg':
+                ext = 'jpg'
+
+            rel_dir = os.path.join('avatars', f'user_{request.user.id}')
+            abs_dir = os.path.join(django_settings.MEDIA_ROOT, rel_dir)
+            os.makedirs(abs_dir, exist_ok=True)
+
+            filename = f'avatar.{ext}'
+            abs_path = os.path.join(abs_dir, filename)
+            with open(abs_path, 'wb') as fh:
+                for chunk in file.chunks():
+                    fh.write(chunk)
+
+            public_url = f'{django_settings.MEDIA_URL}{rel_dir}/{filename}'
+            profile.avatar_url = public_url
+            profile.save(update_fields=['avatar_url'])
+            return JsonResponse({'ok': True, 'url': public_url})
+
+        # ── SUPABASE (production) ──────────────────────────────────
         supabase_url = getattr(django_settings, 'SUPABASE_URL', '')
         supabase_key = getattr(django_settings, 'SUPABASE_SERVICE_KEY', '')
         bucket = getattr(django_settings, 'SUPABASE_AVATARS_BUCKET', 'avatars')

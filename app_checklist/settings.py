@@ -204,10 +204,16 @@ else:
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='DragTask <flyght7_dragtask@outlook.com>')
 
-# Supabase Storage (avatar uploads)
-SUPABASE_URL = env('SUPABASE_URL', default='')
-SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
-SUPABASE_AVATARS_BUCKET = env('SUPABASE_AVATARS_BUCKET', default='avatars')
+# Avatar storage backend
+# In development: save to local media/ folder (no external service needed)
+# In production: upload to Supabase Storage
+if ENVIRONMENT == 'development':
+    AVATAR_STORAGE = 'local'
+else:
+    AVATAR_STORAGE = 'supabase'
+    SUPABASE_URL = env('SUPABASE_URL', default='')
+    SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
+    SUPABASE_AVATARS_BUCKET = env('SUPABASE_AVATARS_BUCKET', default='avatars')
 
 # Configuración de caché optimizada
 CACHES = {
