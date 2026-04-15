@@ -82,6 +82,16 @@ urlpatterns = [
     # Nuevas rutas para gestionar formularios compartidos
     path('forms/add-shared-link/', views.gform_add_shared_link, name='gform_add_shared_link'),
     path('forms/<int:form_id>/remove-shared/', views.gform_remove_shared, name='gform_remove_shared'),
+
+    # Settings
+    path('settings/', views.settings_view, name='settings'),
+    path('settings/avatar/', views.settings_avatar, name='settings_avatar'),
+    path('settings/profile/', views.settings_profile, name='settings_profile'),
+    path('settings/password/', views.settings_password, name='settings_password'),
+    path('settings/email/', views.settings_email, name='settings_email'),
+    path('settings/email/confirm/<uuid:token>/', views.settings_email_confirm, name='settings_email_confirm'),
+    path('settings/delete/', views.settings_delete, name='settings_delete'),
+    path('settings/check-username/', views.settings_check_username, name='settings_check_username'),
 ]
 
 if settings.DEBUG:

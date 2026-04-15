@@ -18,6 +18,7 @@ _VERIFICATION_WHITELIST = (
     '/static/',
     '/media/',
     '/admin/',
+    '/settings/email/confirm/',
 )
 
 
