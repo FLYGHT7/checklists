@@ -6,6 +6,35 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def ensure_tables(apps, schema_editor):
+    """
+    Create EmailVerification and UserProfile tables only if they do not exist.
+    Safe to run on fresh databases AND on databases that already have these
+    tables from a previous untracked migration.
+    If UserProfile already exists but is missing the email_verified column,
+    that column is added.
+    """
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        existing = set(connection.introspection.table_names(cursor))
+
+    EmailVerification = apps.get_model('checklist', 'EmailVerification')
+    UserProfile = apps.get_model('checklist', 'UserProfile')
+
+    if 'checklist_emailverification' not in existing:
+        schema_editor.create_model(EmailVerification)
+
+    if 'checklist_userprofile' not in existing:
+        schema_editor.create_model(UserProfile)
+    else:
+        # Table exists from an old migration; ensure email_verified column is present.
+        with connection.cursor() as cursor:
+            cols = {c.name for c in connection.introspection.get_table_description(cursor, 'checklist_userprofile')}
+        if 'email_verified' not in cols:
+            schema_editor.add_field(UserProfile, UserProfile._meta.get_field('email_verified'))
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -49,23 +78,30 @@ class Migration(migrations.Migration):
             name='status',
             field=models.CharField(choices=[('todo', 'To Do'), ('progress', 'In Progress'), ('done', 'Completed')], default='todo', max_length=20),
         ),
-        migrations.CreateModel(
-            name='EmailVerification',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('token', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField()),
-                ('is_used', models.BooleanField(default=False)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='email_verifications', to=settings.AUTH_USER_MODEL)),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(ensure_tables, migrations.RunPython.noop),
             ],
-        ),
-        migrations.CreateModel(
-            name='UserProfile',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email_verified', models.BooleanField(default=False)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='userprofile', to=settings.AUTH_USER_MODEL)),
+            state_operations=[
+                migrations.CreateModel(
+                    name='EmailVerification',
+                    fields=[
+                        ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                        ('token', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                        ('created_at', models.DateTimeField(auto_now_add=True)),
+                        ('expires_at', models.DateTimeField()),
+                        ('is_used', models.BooleanField(default=False)),
+                        ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='email_verifications', to=settings.AUTH_USER_MODEL)),
+                    ],
+                ),
+                migrations.CreateModel(
+                    name='UserProfile',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('email_verified', models.BooleanField(default=False)),
+                        ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='userprofile', to=settings.AUTH_USER_MODEL)),
+                    ],
+                ),
             ],
         ),
     ]

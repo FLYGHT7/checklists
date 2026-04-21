@@ -3,6 +3,29 @@
 from django.db import migrations, models
 
 
+def ensure_bio_and_avatar(apps, schema_editor):
+    """
+    Add bio and avatar columns to UserProfile only if they don't already exist.
+    Handles production databases that already have these columns from a
+    previous untracked migration.
+    """
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        existing = set(connection.introspection.table_names(cursor))
+    if 'checklist_userprofile' not in existing:
+        return
+
+    UserProfile = apps.get_model('checklist', 'UserProfile')
+    with connection.cursor() as cursor:
+        cols = {c.name for c in connection.introspection.get_table_description(cursor, 'checklist_userprofile')}
+
+    if 'bio' not in cols:
+        schema_editor.add_field(UserProfile, UserProfile._meta.get_field('bio'))
+    if 'avatar' not in cols:
+        schema_editor.add_field(UserProfile, UserProfile._meta.get_field('avatar'))
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,14 +33,21 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='userprofile',
-            name='avatar',
-            field=models.ImageField(blank=True, null=True, upload_to='avatars/'),
-        ),
-        migrations.AddField(
-            model_name='userprofile',
-            name='bio',
-            field=models.CharField(blank=True, default='', max_length=160),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(ensure_bio_and_avatar, migrations.RunPython.noop),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='userprofile',
+                    name='avatar',
+                    field=models.ImageField(blank=True, null=True, upload_to='avatars/'),
+                ),
+                migrations.AddField(
+                    model_name='userprofile',
+                    name='bio',
+                    field=models.CharField(blank=True, default='', max_length=160),
+                ),
+            ],
         ),
     ]

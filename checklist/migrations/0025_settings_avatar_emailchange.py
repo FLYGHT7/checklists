@@ -6,6 +6,24 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def ensure_avatar_url(apps, schema_editor):
+    """Add avatar_url column to UserProfile only if it doesn't already exist."""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        existing = set(connection.introspection.table_names(cursor))
+    if 'checklist_userprofile' not in existing:
+        return
+
+    with connection.cursor() as cursor:
+        cols = {c.name for c in connection.introspection.get_table_description(cursor, 'checklist_userprofile')}
+    if 'avatar_url' not in cols:
+        schema_editor.add_field(
+            apps.get_model('checklist', 'UserProfile'),
+            apps.get_model('checklist', 'UserProfile')._meta.get_field('avatar_url'),
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,10 +32,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='userprofile',
-            name='avatar_url',
-            field=models.URLField(blank=True, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(ensure_avatar_url, migrations.RunPython.noop),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='userprofile',
+                    name='avatar_url',
+                    field=models.URLField(blank=True, null=True),
+                ),
+            ],
         ),
         migrations.CreateModel(
             name='EmailChangeRequest',
