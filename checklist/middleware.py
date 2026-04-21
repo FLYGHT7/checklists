@@ -32,6 +32,10 @@ class EmailVerificationMiddleware(MiddlewareMixin):
         if not request.user.is_authenticated:
             return None
 
+        # Staff and superusers bypass email verification
+        if request.user.is_staff or request.user.is_superuser:
+            return None
+
         path = request.path
         if any(path.startswith(prefix) for prefix in _VERIFICATION_WHITELIST):
             return None
