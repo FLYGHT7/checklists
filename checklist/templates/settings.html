@@ -30,7 +30,11 @@
     <!-- Sidebar -->
     <aside class="st-sidebar">
       <div class="st-sidebar-header">
-        <img src="{{ profile.get_avatar_url }}" alt="avatar" class="st-user-avatar">
+        {% if profile.avatar_url %}
+          <img src="{{ profile.avatar_url }}" alt="avatar" class="st-user-avatar">
+        {% else %}
+          <div class="st-user-avatar st-user-avatar--initials">{{ user.username|slice:":2"|upper }}</div>
+        {% endif %}
         <div>
           <div class="st-user-name">{{ user.get_full_name|default:user.username }}</div>
           <div class="st-user-email">{{ user.email }}</div>
@@ -77,7 +81,13 @@
           </div>
           <div class="st-avatar-wrapper">
             <div class="st-avatar-ring" id="avatarRing">
-              <img src="{{ profile.get_avatar_url }}" alt="avatar" id="avatarPreview">
+              {% if profile.avatar_url %}
+                <img src="{{ profile.avatar_url }}" alt="avatar" id="avatarPreview">
+                <span class="st-avatar-initials d-none" id="avatarInitials" aria-hidden="true">{{ user.username|slice:":2"|upper }}</span>
+              {% else %}
+                <img src="" alt="avatar" id="avatarPreview" class="d-none">
+                <span class="st-avatar-initials" id="avatarInitials">{{ user.username|slice:":2"|upper }}</span>
+              {% endif %}
               <label class="st-avatar-overlay" for="avatarInput" title="{% trans_tag 'Change photo' %}">
                 <i class="bi bi-camera-fill"></i>
               </label>
@@ -377,7 +387,10 @@ if (avatarInput) {
     }
     const reader = new FileReader();
     reader.onload = e => {
+      const initials = document.getElementById('avatarInitials');
       avatarPreview.src = e.target.result;
+      avatarPreview.classList.remove('d-none');
+      if (initials) initials.classList.add('d-none');
       avatarSaveBtn.disabled = false;
     };
     reader.readAsDataURL(file);
@@ -397,8 +410,35 @@ if (avatarSaveBtn) {
       .then(r => r.json())
       .then(data => {
         if (data.ok) {
-          avatarPreview.src = data.url + '?t=' + Date.now();
-          document.querySelectorAll('.st-user-avatar').forEach(img => img.src = data.url);
+          const initials = document.getElementById('avatarInitials');
+          const newSrc = data.url + '?t=' + Date.now();
+          avatarPreview.src = newSrc;
+          avatarPreview.classList.remove('d-none');
+          if (initials) initials.classList.add('d-none');
+          // Update sidebar mini avatar
+          document.querySelectorAll('.st-user-avatar').forEach(el => {
+            if (el.tagName === 'IMG') {
+              el.src = data.url;
+            } else {
+              const img = document.createElement('img');
+              img.src = data.url;
+              img.alt = 'avatar';
+              img.className = 'st-user-avatar';
+              el.replaceWith(img);
+            }
+          });
+          // Update nav header avatar circles (desktop + mobile)
+          document.querySelectorAll('.avatar-circle').forEach(circle => {
+            let img = circle.querySelector('img');
+            if (!img) {
+              circle.innerHTML = '';
+              img = document.createElement('img');
+              img.alt = '{{ user.username }}';
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+              circle.appendChild(img);
+            }
+            img.src = newSrc;
+          });
         } else {
           alert(data.error || '{% trans_tag "Upload failed." %}');
           avatarInput.value = '';

@@ -748,3 +748,192 @@
   font-size: 0.78rem;
   color: #9ca3af;
 }
+
+/* ── Avatar initials (ring + sidebar) ────────────────────────────── */
+.st-avatar-ring .st-avatar-initials {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow:
+    0 0 0 3px #6366f1,
+    0 4px 20px rgba(99, 102, 241, 0.35);
+  user-select: none;
+  letter-spacing: 0.05em;
+}
+
+.st-user-avatar--initials {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: 2px solid rgba(99, 102, 241, 0.35);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+[data-bs-theme="dark"] .st-sidebar {
+  background: rgba(17, 14, 48, 0.82);
+  border-color: rgba(99, 102, 241, 0.22);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-bs-theme="dark"] .st-sidebar-header {
+  border-bottom-color: rgba(99, 102, 241, 0.15);
+}
+
+[data-bs-theme="dark"] .st-sidebar-header .st-user-name {
+  color: #e0e7ff;
+}
+
+[data-bs-theme="dark"] .st-sidebar-header .st-user-email {
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .st-nav-item {
+  color: #c7d2fe;
+}
+
+[data-bs-theme="dark"] .st-nav-item i {
+  color: #818cf8;
+}
+
+[data-bs-theme="dark"] .st-nav-item:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .st-nav-item:hover i {
+  color: #a5b4fc;
+}
+
+[data-bs-theme="dark"] .st-nav-item.active {
+  background: rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
+  box-shadow: inset 3px 0 0 #818cf8;
+}
+
+[data-bs-theme="dark"] .st-nav-item.active i {
+  color: #818cf8;
+}
+
+[data-bs-theme="dark"] .st-section {
+  background: rgba(17, 14, 48, 0.72);
+  border-color: rgba(99, 102, 241, 0.18);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-bs-theme="dark"] .st-section-title {
+  color: #e0e7ff;
+  border-bottom-color: rgba(99, 102, 241, 0.18);
+}
+
+[data-bs-theme="dark"] .st-section-title i {
+  color: #818cf8;
+}
+
+[data-bs-theme="dark"] .st-section .form-label {
+  color: #c7d2fe;
+}
+
+[data-bs-theme="dark"] .st-section .form-control,
+[data-bs-theme="dark"] .st-section .form-select {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.28);
+  color: #e0e7ff;
+}
+
+[data-bs-theme="dark"] .st-section .form-control:focus,
+[data-bs-theme="dark"] .st-section .form-select:focus {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+}
+
+[data-bs-theme="dark"] .st-section .form-control::placeholder {
+  color: #6b7280;
+}
+
+[data-bs-theme="dark"] .st-email-row {
+  color: #c7d2fe;
+}
+
+[data-bs-theme="dark"] .st-session-row {
+  border-bottom-color: rgba(99, 102, 241, 0.12);
+}
+
+[data-bs-theme="dark"] .st-session-info strong {
+  color: #e0e7ff;
+}
+
+[data-bs-theme="dark"] .st-session-info span {
+  color: #818cf8;
+}
+
+[data-bs-theme="dark"] .st-unverified-alert {
+  background: rgba(120, 53, 15, 0.28);
+  border-color: rgba(245, 158, 11, 0.38);
+}
+
+[data-bs-theme="dark"] .st-unverified-alert .st-alert-text strong {
+  color: #fcd34d;
+}
+
+[data-bs-theme="dark"] .st-unverified-alert .st-alert-text p {
+  color: #fde68a;
+}
+
+[data-bs-theme="dark"] .st-danger-card {
+  background: rgba(127, 29, 29, 0.28);
+  border-color: rgba(239, 68, 68, 0.32);
+}
+
+[data-bs-theme="dark"] .st-danger-card .st-section-title {
+  color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .st-danger-card p {
+  color: #d1d5db;
+}
+
+[data-bs-theme="dark"] .st-modal {
+  background: rgba(15, 10, 40, 0.97);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-bs-theme="dark"] .st-modal h5 {
+  color: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .st-modal p {
+  color: #9ca3af;
+}
+
+[data-bs-theme="dark"] .st-modal .form-control {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.28);
+  color: #e0e7ff;
+}
+
+[data-bs-theme="dark"] .st-strength-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
