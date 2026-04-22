@@ -8,6 +8,8 @@ from django.utils import timezone
 from datetime import timedelta, date
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 import json
 import hashlib
 import os
@@ -17,7 +19,8 @@ from django.urls import reverse
 from .translation import translate
 from .models import (
     TodoList, Task, GForm, GQuestion, GOption, GResponse, GAnswer, GSelectedOption,
-    BankQuestion, BankOption, FormPermission, FormShareLink
+    BankQuestion, BankOption, FormPermission, FormShareLink,
+    EmailVerification, UserProfile, EmailChangeRequest
 )
 from .forms import (
     UserRegistrationForm, TodoListForm, TaskForm, GFormForm, GQuestionForm, GOptionForm, 
@@ -115,15 +118,80 @@ def todo_list_stats(request, list_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+def _send_verification_email(request, user, ev):
+    """Send branded HTML verification email. Silently logs on SMTP failure."""
+    lang = request.session.get('language', 'es')
+    verify_url = request.build_absolute_uri(
+        reverse('verify_email', kwargs={'token': ev.token})
+    )
+    context = {'user': user, 'verify_url': verify_url, 'lang': lang}
+    subject_es = 'Verifica tu correo electrónico — DragTask'
+    subject_en = 'Verify your email address — DragTask'
+    subject = subject_es if lang == 'es' else subject_en
+    html_body = render_to_string('emails/verify_email.html', context, request=request)
+    txt_body = render_to_string('emails/verify_email.txt', context, request=request)
+    try:
+        send_mail(
+            subject=subject,
+            message=txt_body,
+            html_message=html_body,
+            from_email=None,  # uses DEFAULT_FROM_EMAIL
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error('Error sending verification email to %s: %s', user.email, exc)
+
+
 def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            login(request, form.save())
-            return redirect('dashboard')
+            user = form.save()
+            # Create verification token and send email
+            ev = EmailVerification.objects.create(user=user)
+            _send_verification_email(request, user, ev)
+            login(request, user)
+            return redirect('verify_email_sent')
     else:
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
+
+
+def verify_email_sent(request):
+    """Page shown after registration — tells user to check their inbox."""
+    return render(request, 'verify_email_sent.html')
+
+
+def verify_email(request, token):
+    """Validate the verification token and activate the account."""
+    ev = get_object_or_404(EmailVerification, token=token)
+    if ev.is_valid():
+        ev.is_used = True
+        ev.save(update_fields=['is_used'])
+        profile, _ = UserProfile.objects.get_or_create(user=ev.user)
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        messages.success(request, _t(request, 'Email verified successfully'))
+        login(request, ev.user)
+        return redirect('dashboard')
+    else:
+        messages.error(request, _t(request, 'Verification link expired'))
+        return redirect('verify_email_sent')
+
+
+@login_required
+def verify_email_resend(request):
+    """Invalidate old tokens and send a fresh verification email."""
+    if request.method == 'POST':
+        user = request.user
+        # Invalidate all previous unused tokens
+        EmailVerification.objects.filter(user=user, is_used=False).update(is_used=True)
+        ev = EmailVerification.objects.create(user=user)
+        _send_verification_email(request, user, ev)
+        messages.success(request, _t(request, 'Verification email sent'))
+    return redirect('verify_email_sent')
 
 def login_view(request):
     if request.method == 'POST':
@@ -2155,3 +2223,280 @@ def can_respond(self, user):
     """Verifica si el usuario puede responder el formulario"""
     permission = self.get_user_permission(user)
     return permission in ['owner', 'editor', 'responder'] or self.is_published
+
+
+# ── Settings views ────────────────────────────────────────────────────────────
+
+@login_required
+def settings_view(request):
+    """Main settings page — resolves active tab from query param."""
+    tab = request.GET.get('tab', 'profile')
+    if tab not in ('profile', 'security', 'account'):
+        tab = 'profile'
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'settings.html', {
+        'active_tab': tab,
+        'profile': profile,
+    })
+
+
+@login_required
+def settings_avatar(request):
+    """AJAX: upload or remove user avatar.
+    Dev  → saved to media/avatars/ (local filesystem, no external service).
+    Prod → uploaded to Supabase Storage.
+    """
+    from django.conf import settings as django_settings
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # ── Remove avatar ──────────────────────────────────────────
+        if action == 'remove':
+            # Delete local file if it exists
+            if profile.avatar_url and profile.avatar_url.startswith('/media/'):
+                local_path = os.path.join(django_settings.MEDIA_ROOT,
+                                          profile.avatar_url.lstrip('/media/').lstrip('/'))
+                if os.path.exists(local_path):
+                    os.remove(local_path)
+            profile.avatar_url = None
+            profile.save(update_fields=['avatar_url'])
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'ok': True, 'url': profile.get_avatar_url()})
+            return redirect('settings')
+
+        # ── Upload avatar ──────────────────────────────────────────
+        file = request.FILES.get('avatar')
+        if not file:
+            return JsonResponse({'ok': False, 'error': _t(request, 'No file provided.')}, status=400)
+        if file.size > 2 * 1024 * 1024:
+            return JsonResponse({'ok': False, 'error': _t(request, 'File exceeds 2 MB limit.')}, status=400)
+
+        storage_backend = getattr(django_settings, 'AVATAR_STORAGE', 'local')
+
+        # ── LOCAL (development) ────────────────────────────────────
+        if storage_backend == 'local':
+            import imghdr
+            # Detect extension from actual content (safe — no trust of client filename)
+            ext = imghdr.what(file) or 'jpg'
+            if ext not in ('jpeg', 'jpg', 'png', 'webp', 'gif'):
+                ext = 'jpg'
+            if ext == 'jpeg':
+                ext = 'jpg'
+
+            rel_dir = os.path.join('avatars', f'user_{request.user.id}')
+            abs_dir = os.path.join(django_settings.MEDIA_ROOT, rel_dir)
+            os.makedirs(abs_dir, exist_ok=True)
+
+            filename = f'avatar.{ext}'
+            abs_path = os.path.join(abs_dir, filename)
+            with open(abs_path, 'wb') as fh:
+                for chunk in file.chunks():
+                    fh.write(chunk)
+
+            public_url = f'{django_settings.MEDIA_URL}{rel_dir}/{filename}'
+            profile.avatar_url = public_url
+            profile.save(update_fields=['avatar_url'])
+            return JsonResponse({'ok': True, 'url': public_url})
+
+        # ── SUPABASE (production) ──────────────────────────────────
+        supabase_url = getattr(django_settings, 'SUPABASE_URL', '')
+        supabase_key = getattr(django_settings, 'SUPABASE_SERVICE_KEY', '')
+        bucket = getattr(django_settings, 'SUPABASE_AVATARS_BUCKET', 'avatars')
+
+        if not supabase_url or not supabase_key:
+            return JsonResponse({'ok': False, 'error': _t(request, 'Storage not configured.')}, status=503)
+
+        import urllib.request as _urllib_req
+        file_path = f"user_{request.user.id}/avatar.webp"
+        upload_url = f"{supabase_url}/storage/v1/object/{bucket}/{file_path}"
+
+        try:
+            data = file.read()
+            req = _urllib_req.Request(
+                upload_url,
+                data=data,
+                method='PUT',
+                headers={
+                    'Authorization': f'Bearer {supabase_key}',
+                    'Content-Type': 'image/webp',
+                    'x-upsert': 'true',
+                },
+            )
+            with _urllib_req.urlopen(req, timeout=15) as resp:
+                if resp.status not in (200, 201):
+                    return JsonResponse({'ok': False, 'error': _t(request, 'Upload failed.')}, status=502)
+        except Exception:
+            return JsonResponse({'ok': False, 'error': _t(request, 'Upload failed.')}, status=502)
+
+        public_url = f"{supabase_url}/storage/v1/object/public/{bucket}/{file_path}"
+        profile.avatar_url = public_url
+        profile.save(update_fields=['avatar_url'])
+        return JsonResponse({'ok': True, 'url': public_url})
+
+    return JsonResponse({'ok': False}, status=405)
+
+
+@login_required
+def settings_profile(request):
+    """AJAX: update first_name, last_name, username."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+
+    first_name = request.POST.get('first_name', '').strip()
+    last_name = request.POST.get('last_name', '').strip()
+    username = request.POST.get('username', '').strip()
+
+    if not username:
+        return JsonResponse({'ok': False, 'message': _t(request, 'Username is required.')})
+    if len(username) > 150:
+        return JsonResponse({'ok': False, 'message': _t(request, 'Username too long.')})
+
+    # Check uniqueness (exclude current user)
+    if User.objects.filter(username=username).exclude(pk=request.user.pk).exists():
+        return JsonResponse({'ok': False, 'message': _t(request, 'Username already taken.')})
+
+    user = request.user
+    user.first_name = first_name[:150]
+    user.last_name = last_name[:150]
+    user.username = username
+    user.save(update_fields=['first_name', 'last_name', 'username'])
+    return JsonResponse({'ok': True, 'message': _t(request, 'Profile updated.')})
+
+
+@login_required
+def settings_password(request):
+    """AJAX: change password — requires current password."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+
+    current = request.POST.get('current_password', '')
+    new_pw = request.POST.get('new_password', '')
+    confirm = request.POST.get('confirm_password', '')
+
+    if not request.user.check_password(current):
+        return JsonResponse({'ok': False, 'message': _t(request, 'Current password is incorrect.')})
+    if len(new_pw) < 8:
+        return JsonResponse({'ok': False, 'message': _t(request, 'Password must be at least 8 characters.')})
+    if new_pw != confirm:
+        return JsonResponse({'ok': False, 'message': _t(request, 'Passwords do not match.')})
+
+    request.user.set_password(new_pw)
+    request.user.save()
+    # Keep the user logged in after password change
+    from django.contrib.auth import update_session_auth_hash
+    update_session_auth_hash(request, request.user)
+    return JsonResponse({'ok': True, 'message': _t(request, 'Password updated successfully.')})
+
+
+@login_required
+def settings_email(request):
+    """AJAX: request email change — sends confirmation to new address."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+
+    new_email = request.POST.get('new_email', '').strip().lower()
+    password = request.POST.get('current_password', '')
+
+    if not new_email:
+        return JsonResponse({'ok': False, 'message': _t(request, 'New email is required.')})
+    if not request.user.check_password(password):
+        return JsonResponse({'ok': False, 'message': _t(request, 'Password is incorrect.')})
+    if User.objects.filter(email__iexact=new_email).exclude(pk=request.user.pk).exists():
+        return JsonResponse({'ok': False, 'message': _t(request, 'That email is already in use.')})
+
+    # Invalidate previous pending requests
+    EmailChangeRequest.objects.filter(user=request.user, is_used=False).update(is_used=True)
+    ecr = EmailChangeRequest.objects.create(user=request.user, new_email=new_email)
+
+    # Send confirmation email
+    lang = getattr(request, 'LANGUAGE_CODE', 'es')[:2]
+    subject = _t(request, 'Confirm your new email — DragTask')
+    confirm_url = request.build_absolute_uri(
+        reverse('settings_email_confirm', kwargs={'token': ecr.token})
+    )
+    html_body = render_to_string('emails/email_change.html', {
+        'user': request.user,
+        'confirm_url': confirm_url,
+        'new_email': new_email,
+        'lang': lang,
+    })
+    txt_body = render_to_string('emails/email_change.txt', {
+        'user': request.user,
+        'confirm_url': confirm_url,
+        'new_email': new_email,
+    })
+    from django.core.mail import EmailMultiAlternatives
+    from django.conf import settings as django_settings
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=txt_body,
+        from_email=django_settings.DEFAULT_FROM_EMAIL,
+        to=[new_email],
+    )
+    msg.attach_alternative(html_body, 'text/html')
+    msg.send(fail_silently=True)
+
+    return JsonResponse({'ok': True, 'message': _t(request, 'Confirmation email sent. Check your inbox.')})
+
+
+@login_required
+def settings_email_confirm(request, token):
+    """Confirm email change via UUID token."""
+    ecr = get_object_or_404(EmailChangeRequest, token=token, user=request.user)
+    if not ecr.is_valid():
+        messages.error(request, _t(request, 'This link has expired or has already been used.'))
+        return redirect('settings')
+
+    ecr.is_used = True
+    ecr.save(update_fields=['is_used'])
+
+    request.user.email = ecr.new_email
+    request.user.save(update_fields=['email'])
+
+    # Mark email as verified again
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.email_verified = True
+    profile.save(update_fields=['email_verified'])
+
+    messages.success(request, _t(request, 'Your email has been updated successfully.'))
+    return redirect('settings')
+
+
+@login_required
+def settings_delete(request):
+    """POST: flush sessions OR delete account."""
+    if request.method != 'POST':
+        return redirect('settings')
+
+    action = request.POST.get('action')
+
+    if action == 'flush_sessions':
+        request.session.flush()
+        login(request, request.user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, _t(request, 'All other sessions have been signed out.'))
+        return redirect('settings')
+
+    if action == 'delete_account':
+        confirm = request.POST.get('confirm_username', '')
+        if confirm != request.user.username:
+            messages.error(request, _t(request, 'Username does not match.'))
+            return redirect('settings')
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, _t(request, 'Your account has been deleted.'))
+        return redirect('home')
+
+    return redirect('settings')
+
+
+@login_required
+def settings_check_username(request):
+    """AJAX GET: check if a username is available."""
+    username = request.GET.get('username', '').strip()
+    if not username or len(username) < 3:
+        return JsonResponse({'available': False})
+    taken = User.objects.filter(username=username).exclude(pk=request.user.pk).exists()
+    return JsonResponse({'available': not taken})

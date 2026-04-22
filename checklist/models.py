@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import uuid
 import hashlib
 from datetime import datetime, timedelta
@@ -340,3 +342,75 @@ class GSelectedOption(models.Model):
   
   def __str__(self):
       return f"Opción seleccionada: {self.option.text}"
+
+
+# ── Email Verification ────────────────────────────────────────────────────────
+
+class UserProfile(models.Model):
+    """Perfil extendido del usuario — verificación de email y avatar."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
+    email_verified = models.BooleanField(default=False)
+    avatar_url = models.URLField(blank=True, null=True)
+    # Legacy fields that exist in the DB — kept here so INSERT doesn't fail
+    bio = models.CharField(max_length=160, blank=True, default='')
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+
+    def get_avatar_url(self):
+        """Returns custom avatar URL or Gravatar fallback."""
+        if self.avatar_url:
+            return self.avatar_url
+        import hashlib as _hl
+        email_hash = _hl.md5(self.user.email.lower().strip().encode()).hexdigest()
+        return f"https://www.gravatar.com/avatar/{email_hash}?s=200&d=identicon"
+
+    def __str__(self):
+        return f"Perfil de {self.user.username}"
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+
+class EmailVerification(models.Model):
+    """Token de verificación de email enviado al registrarse."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_verifications')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"Verificación para {self.user.username} ({'usada' if self.is_used else 'pendiente'})"
+
+
+class EmailChangeRequest(models.Model):
+    """Token para confirmar el cambio de dirección de email."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_change_requests')
+    new_email = models.EmailField()
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"Cambio de email para {self.user.username} → {self.new_email}"

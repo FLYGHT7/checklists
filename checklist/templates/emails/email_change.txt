@@ -1,0 +1,18 @@
+DragTask — Email Change Confirmation
+=====================================
+
+Hello {{ user.username }},
+
+We received a request to change the email address on your DragTask account to:
+
+  {{ new_email }}
+
+Click the link below to confirm this change (expires in 24 hours):
+
+  {{ confirm_url }}
+
+If you didn't request this change, you can safely ignore this email.
+Your current email address will remain unchanged.
+
+---
+© 2024 DragTask · All rights reserved

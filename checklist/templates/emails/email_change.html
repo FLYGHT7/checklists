@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'en' %}en{% else %}es{% endif %}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>{% if lang == 'en' %}Confirm your new email — DragTask{% else %}Confirma tu nuevo correo — DragTask{% endif %}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:#f1f5f9;padding:40px 16px;">
+    <tr>
+      <td align="center">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);border-radius:16px 16px 0 0;padding:40px 32px 32px;text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td align="center" style="padding-bottom:24px;">
+                    <div style="display:inline-block;background:rgba(255,255,255,0.15);border-radius:50%;width:72px;height:72px;line-height:72px;text-align:center;font-size:32px;">
+                      📧
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center">
+                    <span style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">DragTask</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top:8px;">
+                    <span style="font-size:14px;color:rgba(255,255,255,0.75);letter-spacing:1px;text-transform:uppercase;font-weight:500;">
+                      {% if lang == 'en' %}Email Change Confirmation{% else %}Confirmación de cambio de correo{% endif %}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="background:#ffffff;padding:40px 40px 32px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+
+              <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1e293b;">
+                {% if lang == 'en' %}Hello, {{ user.username }} 👋{% else %}Hola, {{ user.username }} 👋{% endif %}
+              </p>
+
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#475569;">
+                {% if lang == 'en' %}
+                  We received a request to change the email address on your <strong style="color:#6366f1;">DragTask</strong> account to:
+                {% else %}
+                  Recibimos una solicitud para cambiar el correo de tu cuenta de <strong style="color:#6366f1;">DragTask</strong> a:
+                {% endif %}
+              </p>
+
+              <!-- New email highlight -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+                <tr>
+                  <td style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:14px 20px;text-align:center;">
+                    <span style="font-size:16px;font-weight:700;color:#4f46e5;">{{ new_email }}</span>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:#475569;">
+                {% if lang == 'en' %}
+                  Click the button below to confirm this change. The link expires in <strong>24 hours</strong>.
+                  If you didn't request this, you can safely ignore this email.
+                {% else %}
+                  Haz clic en el botón para confirmar este cambio. El enlace vence en <strong>24 horas</strong>.
+                  Si no solicitaste este cambio, puedes ignorar este correo con seguridad.
+                {% endif %}
+              </p>
+
+              <!-- CTA button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:32px;">
+                <tr>
+                  <td align="center">
+                    <a href="{{ confirm_url }}"
+                       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;letter-spacing:0.3px;">
+                      {% if lang == 'en' %}Confirm new email{% else %}Confirmar nuevo correo{% endif %}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback URL -->
+              <p style="margin:0 0 8px;font-size:13px;color:#94a3b8;">
+                {% if lang == 'en' %}Or paste this URL in your browser:{% else %}O pega este enlace en tu navegador:{% endif %}
+              </p>
+              <p style="margin:0;font-size:12px;color:#6366f1;word-break:break-all;">
+                {{ confirm_url }}
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 16px 16px;padding:24px 40px;text-align:center;">
+              <p style="margin:0 0 6px;font-size:13px;color:#94a3b8;">
+                {% if lang == 'en' %}
+                  This email was sent to <strong>{{ new_email }}</strong> because a change was requested on DragTask.
+                {% else %}
+                  Este correo fue enviado a <strong>{{ new_email }}</strong> porque se solicitó un cambio en DragTask.
+                {% endif %}
+              </p>
+              <p style="margin:0;font-size:12px;color:#cbd5e1;">
+                © 2024 DragTask · {% if lang == 'en' %}All rights reserved{% else %}Todos los derechos reservados{% endif %}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

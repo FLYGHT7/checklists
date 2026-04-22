@@ -10,6 +10,10 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    # Email verification
+    path('verify-email/sent/', views.verify_email_sent, name='verify_email_sent'),
+    path('verify-email/resend/', views.verify_email_resend, name='verify_email_resend'),
+    path('verify-email/<uuid:token>/', views.verify_email, name='verify_email'),
     path('dashboard/', views.dashboard, name='dashboard'),
     # Añadir esta línea a urlpatterns en urls.py
     path('todo_list/<int:list_id>/stats/', views.todo_list_stats, name='todo_list_stats'),
@@ -78,6 +82,16 @@ urlpatterns = [
     # Nuevas rutas para gestionar formularios compartidos
     path('forms/add-shared-link/', views.gform_add_shared_link, name='gform_add_shared_link'),
     path('forms/<int:form_id>/remove-shared/', views.gform_remove_shared, name='gform_remove_shared'),
+
+    # Settings
+    path('settings/', views.settings_view, name='settings'),
+    path('settings/avatar/', views.settings_avatar, name='settings_avatar'),
+    path('settings/profile/', views.settings_profile, name='settings_profile'),
+    path('settings/password/', views.settings_password, name='settings_password'),
+    path('settings/email/', views.settings_email, name='settings_email'),
+    path('settings/email/confirm/<uuid:token>/', views.settings_email_confirm, name='settings_email_confirm'),
+    path('settings/delete/', views.settings_delete, name='settings_delete'),
+    path('settings/check-username/', views.settings_check_username, name='settings_check_username'),
 ]
 
 if settings.DEBUG:

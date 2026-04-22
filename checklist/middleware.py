@@ -2,9 +2,52 @@ from django.utils.deprecation import MiddlewareMixin
 import logging
 from django.core.cache import cache
 from django.utils import translation
+from django.shortcuts import redirect
+from django.urls import reverse
 
 # Configurar logging
 logger = logging.getLogger(__name__)
+
+# Paths that unverified users are allowed to access
+_VERIFICATION_WHITELIST = (
+    '/verify-email/',
+    '/login/',
+    '/logout/',
+    '/register/',
+    '/favicon.ico',
+    '/static/',
+    '/media/',
+    '/admin/',
+    '/settings/email/confirm/',
+)
+
+
+class EmailVerificationMiddleware(MiddlewareMixin):
+    """
+    Redirects authenticated users who have not verified their email address
+    to the 'verify_email_sent' page, blocking access to all other views.
+    """
+
+    def process_request(self, request):
+        if not request.user.is_authenticated:
+            return None
+
+        # Staff and superusers bypass email verification
+        if request.user.is_staff or request.user.is_superuser:
+            return None
+
+        path = request.path
+        if any(path.startswith(prefix) for prefix in _VERIFICATION_WHITELIST):
+            return None
+
+        try:
+            if request.user.userprofile.email_verified:
+                return None
+        except Exception:
+            # Profile missing — let signal create it, don't block
+            return None
+
+        return redirect(reverse('verify_email_sent'))
 
 class CachedLanguageMiddleware(MiddlewareMixin):
     """

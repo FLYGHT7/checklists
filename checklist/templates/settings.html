@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_i18n %}
+
+{% block title %}{% trans_tag 'Settings' %} — DragTask{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 mt-4">
+
+  <!-- Page header -->
+  <div class="st-page-header mb-4">
+    <div class="st-orb st-orb-1"></div>
+    <div class="st-orb st-orb-2"></div>
+    <div class="st-orb st-orb-3"></div>
+    <div class="st-badge-header">
+      <i class="bi bi-gear-fill"></i>
+      {% trans_tag 'Settings' %}
+    </div>
+    <h1>{% trans_tag 'Account Settings' %}</h1>
+    <p>{% trans_tag 'Manage your profile, security, and account preferences.' %}</p>
+  </div>
+
+  <!-- Layout -->
+  <div class="st-layout">
+
+    <!-- Sidebar -->
+    <aside class="st-sidebar">
+      <div class="st-sidebar-header">
+        {% if profile.avatar_url %}
+          <img src="{{ profile.avatar_url }}" alt="avatar" class="st-user-avatar">
+        {% else %}
+          <div class="st-user-avatar st-user-avatar--initials">{{ user.username|slice:":2"|upper }}</div>
+        {% endif %}
+        <div>
+          <div class="st-user-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="st-user-email">{{ user.email }}</div>
+        </div>
+      </div>
+      <nav>
+        <ul class="st-nav-list list-unstyled mb-0" id="st-nav">
+          <li>
+            <button class="st-nav-item {% if active_tab == 'profile' %}active{% endif %}"
+                    data-tab="profile" onclick="switchTab('profile')">
+              <i class="bi bi-person"></i>
+              {% trans_tag 'Profile' %}
+            </button>
+          </li>
+          <li>
+            <button class="st-nav-item {% if active_tab == 'security' %}active{% endif %}"
+                    data-tab="security" onclick="switchTab('security')">
+              <i class="bi bi-shield-lock"></i>
+              {% trans_tag 'Security' %}
+            </button>
+          </li>
+          <li>
+            <button class="st-nav-item {% if active_tab == 'account' %}active{% endif %}"
+                    data-tab="account" onclick="switchTab('account')">
+              <i class="bi bi-person-gear"></i>
+              {% trans_tag 'Account' %}
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="st-main">
+
+      <!-- ── TAB: Profile ─────────────────────────────────────── -->
+      <div id="panel-profile" class="st-panel {% if active_tab == 'profile' %}active{% endif %}">
+
+        <!-- Avatar section -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-image"></i>
+            {% trans_tag 'Profile Photo' %}
+          </div>
+          <div class="st-avatar-wrapper">
+            <div class="st-avatar-ring" id="avatarRing">
+              {% if profile.avatar_url %}
+                <img src="{{ profile.avatar_url }}" alt="avatar" id="avatarPreview">
+                <span class="st-avatar-initials d-none" id="avatarInitials" aria-hidden="true">{{ user.username|slice:":2"|upper }}</span>
+              {% else %}
+                <img src="" alt="avatar" id="avatarPreview" class="d-none">
+                <span class="st-avatar-initials" id="avatarInitials">{{ user.username|slice:":2"|upper }}</span>
+              {% endif %}
+              <label class="st-avatar-overlay" for="avatarInput" title="{% trans_tag 'Change photo' %}">
+                <i class="bi bi-camera-fill"></i>
+              </label>
+              <input type="file" id="avatarInput" accept="image/*" class="d-none">
+            </div>
+            <div class="st-avatar-actions">
+              <button class="btn btn-primary btn-sm" id="avatarSaveBtn" disabled>
+                {% trans_tag 'Save photo' %}
+              </button>
+              {% if profile.avatar_url %}
+              <form method="post" action="{% url 'settings_avatar' %}" id="removeAvatarForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="remove">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                  {% trans_tag 'Remove photo' %}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          <p class="text-muted" style="font-size:.78rem;margin:0">
+            {% trans_tag 'JPG, PNG or WEBP · Max 2 MB' %}
+          </p>
+        </div>
+
+        <!-- Name section -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-person-lines-fill"></i>
+            {% trans_tag 'Personal Information' %}
+          </div>
+          <form method="post" action="{% url 'settings_profile' %}" id="profileForm">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label" for="id_first_name">{% trans_tag 'First name' %}</label>
+                <input type="text" class="form-control" id="id_first_name" name="first_name"
+                       value="{{ user.first_name }}" maxlength="150">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label" for="id_last_name">{% trans_tag 'Last name' %}</label>
+                <input type="text" class="form-control" id="id_last_name" name="last_name"
+                       value="{{ user.last_name }}" maxlength="150">
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="id_username">{% trans_tag 'Username' %}</label>
+                <input type="text" class="form-control" id="id_username" name="username"
+                       value="{{ user.username }}" maxlength="150" autocomplete="username">
+                <div class="st-username-feedback" id="usernameFeedback"></div>
+              </div>
+            </div>
+            <div class="st-save-row">
+              <button type="submit" class="btn btn-primary" id="profileSaveBtn">
+                {% trans_tag 'Save changes' %}
+              </button>
+              <span class="st-inline-msg" id="profileMsg"></span>
+            </div>
+          </form>
+        </div>
+
+      </div>
+      <!-- end #panel-profile -->
+
+      <!-- ── TAB: Security ────────────────────────────────────── -->
+      <div id="panel-security" class="st-panel {% if active_tab == 'security' %}active{% endif %}">
+
+        <!-- Change password -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-key-fill"></i>
+            {% trans_tag 'Change Password' %}
+          </div>
+          <form method="post" action="{% url 'settings_password' %}" id="passwordForm">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label" for="id_current_password">
+                {% trans_tag 'Current password' %}
+              </label>
+              <input type="password" class="form-control" id="id_current_password"
+                     name="current_password" autocomplete="current-password">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_new_password">
+                {% trans_tag 'New password' %}
+              </label>
+              <input type="password" class="form-control" id="id_new_password"
+                     name="new_password" autocomplete="new-password">
+              <!-- Strength bar -->
+              <div class="st-strength-wrap strength-0" id="strengthWrap">
+                <div class="st-strength-bar">
+                  <div class="st-strength-fill"></div>
+                </div>
+                <span class="st-strength-label" id="strengthLabel"></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_confirm_password">
+                {% trans_tag 'Confirm new password' %}
+              </label>
+              <input type="password" class="form-control" id="id_confirm_password"
+                     name="confirm_password" autocomplete="new-password">
+            </div>
+            <div class="st-save-row">
+              <button type="submit" class="btn btn-primary">
+                {% trans_tag 'Update password' %}
+              </button>
+              <span class="st-inline-msg" id="passwordMsg"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Change email -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-envelope-at-fill"></i>
+            {% trans_tag 'Change Email' %}
+          </div>
+          <div class="st-email-row">
+            <span>{% trans_tag 'Current email' %}:</span>
+            <strong>{{ user.email }}</strong>
+            {% if profile.email_verified %}
+            <span class="st-badge--verified">
+              <i class="bi bi-patch-check-fill"></i>
+              {% trans_tag 'Verified' %}
+            </span>
+            {% else %}
+            <span class="st-badge--unverified">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {% trans_tag 'Unverified' %}
+            </span>
+            {% endif %}
+          </div>
+          <form method="post" action="{% url 'settings_email' %}" id="emailForm">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label" for="id_new_email">
+                {% trans_tag 'New email address' %}
+              </label>
+              <input type="email" class="form-control" id="id_new_email"
+                     name="new_email" placeholder="nuevo@email.com">
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="id_email_password">
+                {% trans_tag 'Confirm with your password' %}
+              </label>
+              <input type="password" class="form-control" id="id_email_password"
+                     name="current_password" autocomplete="current-password">
+            </div>
+            <div class="st-save-row">
+              <button type="submit" class="btn btn-primary">
+                {% trans_tag 'Send confirmation' %}
+              </button>
+              <span class="st-inline-msg" id="emailMsg"></span>
+            </div>
+          </form>
+        </div>
+
+      </div>
+      <!-- end #panel-security -->
+
+      <!-- ── TAB: Account ─────────────────────────────────────── -->
+      <div id="panel-account" class="st-panel {% if active_tab == 'account' %}active{% endif %}">
+
+        <!-- Verification status -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-patch-check"></i>
+            {% trans_tag 'Verification Status' %}
+          </div>
+          {% if profile.email_verified %}
+          <div class="d-flex align-items-center gap-2">
+            <span class="st-badge--verified fs-6">
+              <i class="bi bi-patch-check-fill"></i>
+              {% trans_tag 'Email verified' %}
+            </span>
+            <span class="text-muted" style="font-size:.82rem">{{ user.email }}</span>
+          </div>
+          {% else %}
+          <div class="st-unverified-alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div class="st-alert-text">
+              <strong>{% trans_tag 'Your email is not verified' %}</strong>
+              <p>{% trans_tag 'Some features may be restricted until you verify your email.' %}</p>
+              <form method="post" action="{% url 'verify_email_resend' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning btn-sm">
+                  <i class="bi bi-envelope-arrow-up me-1"></i>
+                  {% trans_tag 'Resend verification email' %}
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Sessions -->
+        <div class="st-section">
+          <div class="st-section-title">
+            <i class="bi bi-phone-fill"></i>
+            {% trans_tag 'Sessions' %}
+          </div>
+          <div class="st-session-row">
+            <div class="st-session-info">
+              <strong>{% trans_tag 'Current session' %}</strong>
+              <span>{% trans_tag 'Active now' %}</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <form method="post" action="{% url 'settings_delete' %}?action=sessions">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="flush_sessions">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i>
+                {% trans_tag 'Sign out from all devices' %}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="st-section st-danger-card">
+          <div class="st-section-title">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {% trans_tag 'Danger Zone' %}
+          </div>
+          <p>{% trans_tag 'Permanently deletes your account and all associated data. This action cannot be undone.' %}</p>
+          <button type="button" class="btn btn-danger btn-sm" onclick="openDeleteModal()">
+            <i class="bi bi-trash3-fill me-1"></i>
+            {% trans_tag 'Delete my account' %}
+          </button>
+        </div>
+
+      </div>
+      <!-- end #panel-account -->
+
+    </main>
+  </div><!-- .st-layout -->
+</div><!-- .container-fluid -->
+
+<!-- ── Delete account modal ──────────────────────────────────────── -->
+<div class="st-modal-backdrop" id="deleteModalBackdrop" onclick="closeDeleteModal(event)">
+  <div class="st-modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-icon">
+      <i class="bi bi-trash3-fill"></i>
+    </div>
+    <h5 id="deleteModalTitle">{% trans_tag 'Delete your account?' %}</h5>
+    <p>
+      {% trans_tag 'This will permanently delete your account and all your data. To confirm, type your username:' %}
+      <span class="confirm-username">{{ user.username }}</span>
+    </p>
+    <form method="post" action="{% url 'settings_delete' %}" id="deleteAccountForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_account">
+      <input type="text" class="form-control mb-1" id="deleteUsernameInput"
+             name="confirm_username" placeholder="{{ user.username }}"
+             autocomplete="off">
+      <div id="deleteInputError" class="text-danger" style="font-size:.75rem;min-height:16px"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline-secondary" onclick="closeDeleteModal()">
+          {% trans_tag 'Cancel' %}
+        </button>
+        <button type="submit" class="btn btn-danger" id="deleteConfirmBtn" disabled>
+          {% trans_tag 'Delete account' %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Tab switching ─────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.st-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.st-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+  const url = new URL(window.location);
+  url.searchParams.set('tab', tab);
+  history.replaceState(null, '', url.toString());
+}
+
+// ── Avatar preview ────────────────────────────────────────────────
+const avatarInput = document.getElementById('avatarInput');
+const avatarPreview = document.getElementById('avatarPreview');
+const avatarSaveBtn = document.getElementById('avatarSaveBtn');
+
+if (avatarInput) {
+  avatarInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('{% trans_tag "File exceeds 2 MB limit." %}');
+      this.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const initials = document.getElementById('avatarInitials');
+      avatarPreview.src = e.target.result;
+      avatarPreview.classList.remove('d-none');
+      if (initials) initials.classList.add('d-none');
+      avatarSaveBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+if (avatarSaveBtn) {
+  avatarSaveBtn.addEventListener('click', function () {
+    const file = avatarInput.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('avatar', file);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    this.disabled = true;
+    this.innerHTML = '<span class="st-spinner"></span>';
+    fetch('{% url "settings_avatar" %}', { method: 'POST', body: formData })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          const initials = document.getElementById('avatarInitials');
+          const newSrc = data.url + '?t=' + Date.now();
+          avatarPreview.src = newSrc;
+          avatarPreview.classList.remove('d-none');
+          if (initials) initials.classList.add('d-none');
+          // Update sidebar mini avatar
+          document.querySelectorAll('.st-user-avatar').forEach(el => {
+            if (el.tagName === 'IMG') {
+              el.src = data.url;
+            } else {
+              const img = document.createElement('img');
+              img.src = data.url;
+              img.alt = 'avatar';
+              img.className = 'st-user-avatar';
+              el.replaceWith(img);
+            }
+          });
+          // Update nav header avatar circles (desktop + mobile)
+          document.querySelectorAll('.avatar-circle').forEach(circle => {
+            let img = circle.querySelector('img');
+            if (!img) {
+              circle.innerHTML = '';
+              img = document.createElement('img');
+              img.alt = '{{ user.username }}';
+              img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+              circle.appendChild(img);
+            }
+            img.src = newSrc;
+          });
+        } else {
+          alert(data.error || '{% trans_tag "Upload failed." %}');
+          avatarInput.value = '';
+        }
+      })
+      .catch(() => alert('{% trans_tag "Upload failed." %}'))
+      .finally(() => {
+        avatarSaveBtn.disabled = false;
+        avatarSaveBtn.textContent = '{% trans_tag "Save photo" %}';
+      });
+  });
+}
+
+// ── Username availability check ───────────────────────────────────
+const usernameInput = document.getElementById('id_username');
+const usernameFeedback = document.getElementById('usernameFeedback');
+const originalUsername = '{{ user.username }}';
+let usernameTimer;
+
+if (usernameInput) {
+  usernameInput.addEventListener('input', function () {
+    clearTimeout(usernameTimer);
+    const val = this.value.trim();
+    if (val === originalUsername || val.length < 3) {
+      this.classList.remove('is-valid', 'is-invalid');
+      usernameFeedback.textContent = '';
+      return;
+    }
+    usernameTimer = setTimeout(() => {
+      fetch('{% url "settings_check_username" %}?username=' + encodeURIComponent(val))
+        .then(r => r.json())
+        .then(data => {
+          if (data.available) {
+            usernameInput.classList.add('is-valid');
+            usernameInput.classList.remove('is-invalid');
+            usernameFeedback.textContent = '{% trans_tag "Username available" %}';
+            usernameFeedback.style.color = '#10b981';
+          } else {
+            usernameInput.classList.add('is-invalid');
+            usernameInput.classList.remove('is-valid');
+            usernameFeedback.textContent = '{% trans_tag "Username already taken" %}';
+            usernameFeedback.style.color = '#ef4444';
+          }
+        });
+    }, 400);
+  });
+}
+
+// ── Password strength meter ───────────────────────────────────────
+const newPasswordInput = document.getElementById('id_new_password');
+const strengthWrap = document.getElementById('strengthWrap');
+const strengthLabel = document.getElementById('strengthLabel');
+const STRENGTH_LABELS = ['', '{% trans_tag "Weak" %}', '{% trans_tag "Fair" %}', '{% trans_tag "Good" %}', '{% trans_tag "Strong" %}'];
+
+function calcStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score;
+}
+
+if (newPasswordInput) {
+  newPasswordInput.addEventListener('input', function () {
+    const score = this.value.length ? calcStrength(this.value) : 0;
+    strengthWrap.className = 'st-strength-wrap strength-' + score;
+    strengthLabel.textContent = this.value.length ? STRENGTH_LABELS[score] : '';
+  });
+}
+
+// ── AJAX form submissions ─────────────────────────────────────────
+function ajaxForm(formId, msgId) {
+  const form = document.getElementById(formId);
+  const msg  = document.getElementById(msgId);
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    msg.className = 'st-inline-msg';
+    msg.textContent = '';
+    const btn = form.querySelector('[type=submit]');
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="st-spinner"></span>';
+    fetch(form.action, { method: 'POST', body: new FormData(form) })
+      .then(r => r.json())
+      .then(data => {
+        msg.textContent = data.message || (data.ok ? '{% trans_tag "Saved" %}' : '{% trans_tag "Error" %}');
+        msg.className = 'st-inline-msg show ' + (data.ok ? 'success' : 'error');
+        setTimeout(() => msg.classList.remove('show'), 4000);
+        if (data.ok && formId === 'passwordForm') form.reset();
+      })
+      .catch(() => {
+        msg.textContent = '{% trans_tag "Request failed. Try again." %}';
+        msg.className = 'st-inline-msg show error';
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = origText;
+      });
+  });
+}
+
+ajaxForm('profileForm', 'profileMsg');
+ajaxForm('passwordForm', 'passwordMsg');
+ajaxForm('emailForm', 'emailMsg');
+
+// ── Delete account modal ──────────────────────────────────────────
+const deleteUsernameInput = document.getElementById('deleteUsernameInput');
+const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+const deleteInputError = document.getElementById('deleteInputError');
+
+function openDeleteModal() {
+  document.getElementById('deleteModalBackdrop').classList.add('show');
+  setTimeout(() => deleteUsernameInput.focus(), 100);
+}
+
+function closeDeleteModal(e) {
+  if (e && e.target !== document.getElementById('deleteModalBackdrop')) return;
+  document.getElementById('deleteModalBackdrop').classList.remove('show');
+  deleteUsernameInput.value = '';
+  deleteConfirmBtn.disabled = true;
+  deleteInputError.textContent = '';
+}
+
+if (deleteUsernameInput) {
+  deleteUsernameInput.addEventListener('input', function () {
+    const match = this.value === originalUsername;
+    deleteConfirmBtn.disabled = !match;
+    deleteInputError.textContent = this.value && !match ? '{% trans_tag "Username does not match." %}' : '';
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDeleteModal();
+});
+</script>
+{% endblock %}

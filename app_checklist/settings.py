@@ -66,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'checklist.middleware.EmailVerificationMiddleware',  # Block unverified users
 ]
 
 ROOT_URLCONF = 'app_checklist.urls'
@@ -189,6 +190,27 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ── Email — Outlook SMTP ──────────────────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='DragTask <flyght7_dragtask@outlook.com>')
+
+# Avatar storage backend
+# In development: save to local media/ folder (no external service needed)
+# In production: upload to Supabase Storage
+if ENVIRONMENT == 'development':
+    AVATAR_STORAGE = 'local'
+else:
+    AVATAR_STORAGE = 'supabase'
+    SUPABASE_URL = env('SUPABASE_URL', default='')
+    SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
+    SUPABASE_AVATARS_BUCKET = env('SUPABASE_AVATARS_BUCKET', default='avatars')
 
 # Configuración de caché optimizada
 CACHES = {
