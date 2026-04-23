@@ -32,10 +32,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Step 1: Update migration state only.
         migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunPython(ensure_avatar_url, migrations.RunPython.noop),
-            ],
+            database_operations=[],
             state_operations=[
                 migrations.AddField(
                     model_name='userprofile',
@@ -44,6 +43,8 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
+        # Step 2: Add column conditionally — state already knows about avatar_url.
+        migrations.RunPython(ensure_avatar_url, migrations.RunPython.noop),
         migrations.CreateModel(
             name='EmailChangeRequest',
             fields=[

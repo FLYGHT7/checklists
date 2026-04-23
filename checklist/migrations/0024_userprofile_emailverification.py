@@ -78,10 +78,10 @@ class Migration(migrations.Migration):
             name='status',
             field=models.CharField(choices=[('todo', 'To Do'), ('progress', 'In Progress'), ('done', 'Completed')], default='todo', max_length=20),
         ),
+        # Step 1: Update migration state only (no DB changes yet).
+        # RunPython must come AFTER this so apps.get_model() can see the new models.
         migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunPython(ensure_tables, migrations.RunPython.noop),
-            ],
+            database_operations=[],
             state_operations=[
                 migrations.CreateModel(
                     name='EmailVerification',
@@ -104,4 +104,6 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
+        # Step 2: Now create tables conditionally — state already knows the models.
+        migrations.RunPython(ensure_tables, migrations.RunPython.noop),
     ]

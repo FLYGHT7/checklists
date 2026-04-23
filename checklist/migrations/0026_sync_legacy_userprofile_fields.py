@@ -33,10 +33,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Step 1: Update migration state only.
         migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunPython(ensure_bio_and_avatar, migrations.RunPython.noop),
-            ],
+            database_operations=[],
             state_operations=[
                 migrations.AddField(
                     model_name='userprofile',
@@ -50,4 +49,6 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
+        # Step 2: Add columns conditionally — state already knows about bio and avatar.
+        migrations.RunPython(ensure_bio_and_avatar, migrations.RunPython.noop),
     ]
