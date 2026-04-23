@@ -3,7 +3,7 @@ services:
     name: checklists
     runtime: python
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: python manage.py collectstatic --noinput && python manage.py migrate && gunicorn app_checklist.wsgi:application --bind 0.0.0.0:$PORT --log-file -
+    startCommand: python manage.py migrate && gunicorn app_checklist.wsgi:application --bind 0.0.0.0:$PORT --log-file - --preload
     envVars:
       - key: ENVIRONMENT
         value: production
