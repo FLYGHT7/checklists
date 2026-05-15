@@ -125,10 +125,10 @@ class SecurityHeadersMiddleware:
 
         self._csp = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             f"img-src {img_src}; "
-            "font-src 'self'; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
             "connect-src 'self';"
         )
 

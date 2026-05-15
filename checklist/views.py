@@ -6,6 +6,9 @@ from django.db import transaction, models
 from django.contrib import messages
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from urllib.parse import urlparse
 from datetime import timedelta, date
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -14,10 +17,13 @@ from django.template.loader import render_to_string
 from django_ratelimit.decorators import ratelimit
 import json
 import hashlib
+import logging
 import os
 import uuid
 from django.contrib.auth.models import User
 from django.urls import reverse
+
+logger = logging.getLogger(__name__)
 from .translation import translate
 from .models import (
     TodoList, Task, GForm, GQuestion, GOption, GResponse, GAnswer, GSelectedOption,
@@ -117,8 +123,9 @@ def todo_list_stats(request, list_id):
         })
     except TodoList.DoesNotExist:
         return JsonResponse({'error': _t(request, 'List not found')}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    except Exception:
+        logger.exception("todo_list_stats failed for list %s", list_id)
+        return JsonResponse({'error': _t(request, 'An error occurred')}, status=500)
 
 def _send_verification_email(request, user, ev):
     """Send branded HTML verification email. Silently logs on SMTP failure."""
@@ -421,22 +428,29 @@ def update_task_status(request, task_id):
             'status': task.status
         })
     
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    except Exception:
+        logger.exception("update_task_status failed for task %s", task_id)
+        return JsonResponse({'error': _t(request, 'An error occurred')}, status=400)
+
+_VALID_TASK_STATUSES = {'todo', 'progress', 'done'}
 
 @login_required
 @require_POST
 def update_tasks_order(request, list_id):
     """API para actualizar el orden de las tareas"""
     todo_list = get_object_or_404(TodoList, id=list_id)
-    
+
     # Verificar que el usuario sea el propietario
     if todo_list.user != request.user:
         return JsonResponse({'error': _t(request, "You don't have permission to modify this list")}, status=403)
-    
+
     try:
         data = json.loads(request.body)
-        
+
+        for status in data:
+            if status not in _VALID_TASK_STATUSES:
+                return JsonResponse({'error': _t(request, 'Invalid status')}, status=400)
+
         with transaction.atomic():
             for status, tasks in data.items():
                 for i, task_id in enumerate(tasks):
@@ -444,11 +458,12 @@ def update_tasks_order(request, list_id):
                         status=status,
                         position=i
                     )
-        
+
         return JsonResponse({'success': True})
-    
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+
+    except Exception:
+        logger.exception("update_tasks_order failed for list %s", list_id)
+        return JsonResponse({'error': _t(request, 'An error occurred')}, status=400)
 
 # Vistas para Google Forms
 # Modificar la vista gform_list para pasar los permisos directamente al contexto
@@ -801,29 +816,25 @@ def gform_delete_question(request, question_id):
         
         messages.success(request, _t(request, "Question deleted from form successfully"))
         return redirect('gform_edit', form_id=form_id)
-    except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"Error al eliminar pregunta: {str(e)}\n{error_traceback}")
-        
+    except Exception:
+        logger.exception("gform_delete_question failed for question %s", question_id)
+
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': str(e)})
-        
-        # Si no podemos obtener el ID del formulario de la pregunta (porque no existe),
-        # intentamos obtenerlo de la URL de referencia
+            return JsonResponse({'success': False, 'error': _t(request, 'Error deleting the question')})
+
+        # Try to redirect back to the form editor via Referer header
         try:
-            referer = request.META.get('HTTP_REFERER', '')
             import re
+            referer = request.META.get('HTTP_REFERER', '')
             form_id_match = re.search(r'/forms/(\d+)/edit/', referer)
             if form_id_match:
                 form_id = form_id_match.group(1)
-                messages.error(request, f"{_t(request, 'Error deleting the question')}: {str(e)}")
+                messages.error(request, _t(request, 'Error deleting the question'))
                 return redirect('gform_edit', form_id=form_id)
-        except:
+        except Exception:
             pass
-        
-        # Si todo falla, redirigir a la lista de formularios
-        messages.error(request, f"{_t(request, 'Error deleting the question')}: {str(e)}")
+
+        messages.error(request, _t(request, 'Error deleting the question'))
         return redirect('gform_list')
 
 @login_required
@@ -985,8 +996,9 @@ def gform_update_question_order(request, form_id):
                 GQuestion.objects.filter(id=question_id, form=gform).update(position=i)
         
         return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception:
+        logger.exception("gform_update_question_order failed for form %s", form_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')}, status=400)
 
 @login_required
 @require_POST
@@ -1022,8 +1034,9 @@ def gform_update_option_order(request, question_id):
                         pass
         
         return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception:
+        logger.exception("gform_update_option_order failed for question %s", question_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')}, status=400)
 
 @login_required
 def gform_toggle_publish(request, form_id):
@@ -1042,6 +1055,7 @@ def gform_toggle_publish(request, form_id):
     
     return redirect('gform_edit', form_id=gform.id)
 
+@ratelimit(key='ip', rate='20/5m', method='POST', block=True)
 def gform_view(request, form_id):
     """Vista para ver y responder a un formulario"""
     gform = get_object_or_404(GForm, id=form_id)
@@ -1064,43 +1078,54 @@ def gform_view(request, form_id):
         if not gform.is_published and not gform.can_respond(request.user):
             return HttpResponseForbidden(_t(request, "This form is not accepting responses"))
         
+        # Validate and sanitize respondent email (PT7)
+        raw_email = request.POST.get('email', '').strip() or None
+        if raw_email:
+            try:
+                validate_email(raw_email)
+                respondent_email = raw_email
+            except ValidationError:
+                respondent_email = None
+        else:
+            respondent_email = None
+
         # Crear una nueva respuesta
         response = GResponse.objects.create(
             form=gform,
             respondent=request.user if request.user.is_authenticated else None,
-            respondent_email=request.POST.get('email', None)
+            respondent_email=respondent_email,
         )
-        
+
         # Procesar cada pregunta
         for question in questions:
             field_name = f'question_{question.id}'
             file_field_name = f'file_{question.id}'
             url_field_name = f'url_{question.id}'
-            
+
             if field_name in request.POST or file_field_name in request.FILES or url_field_name in request.POST:
                 answer = GAnswer.objects.create(
                     response=response,
                     question=question
                 )
-                
+
                 if field_name in request.POST:
                     if question.question_type in ['short_text', 'paragraph', 'date', 'time', 'linear_scale']:
                         answer.text_answer = request.POST.get(field_name)
                         answer.save()
-                    
+
                     elif question.question_type in ['multiple_choice', 'dropdown']:
                         option_id = request.POST.get(field_name)
                         if option_id:
                             option = get_object_or_404(GOption, id=option_id)
                             GSelectedOption.objects.create(answer=answer, option=option)
-                    
+
                     elif question.question_type == 'checkbox':
                         # Para checkbox, value puede ser una lista
                         option_ids = request.POST.getlist(field_name)
                         for option_id in option_ids:
                             option = get_object_or_404(GOption, id=option_id)
                             GSelectedOption.objects.create(answer=answer, option=option)
-                
+
                 # Procesar archivos adjuntos solo si la pregunta permite adjuntos
                 if question.allow_attachments:
                     if file_field_name in request.FILES:
@@ -1110,15 +1135,18 @@ def gform_view(request, form_id):
                         elif file.content_type.startswith('video/'):
                             answer.video = file
                         answer.save()
-                    
-                    # Procesar URL
-                    if url_field_name in request.POST and request.POST.get(url_field_name):
-                        answer.file_url = request.POST.get(url_field_name)
-                        answer.save()
-        
+
+                    # Procesar URL — only accept http/https schemes (PT2)
+                    raw_url = request.POST.get(url_field_name, '').strip()
+                    if raw_url:
+                        parsed = urlparse(raw_url)
+                        if parsed.scheme in ('http', 'https'):
+                            answer.file_url = raw_url
+                            answer.save()
+
         messages.success(request, _t(request, "Thank you for your response!"))
         return redirect('gform_thank_you', form_id=gform.id)
-    
+
     return render(request, 'forms_google/view_form.html', {
         'gform': gform,
         'questions': questions,
@@ -1126,6 +1154,7 @@ def gform_view(request, form_id):
         'can_edit': gform.can_edit(request.user) if request.user.is_authenticated else False,
     })
 
+@ratelimit(key='ip', rate='20/5m', method='POST', block=True)
 def gform_respond(request, form_id):
     """Vista exclusiva para responder a un formulario sin opciones de edición"""
     gform = get_object_or_404(GForm, id=form_id)
@@ -1151,44 +1180,55 @@ def gform_respond(request, form_id):
     
     if request.method == 'POST':
         # Procesar la respuesta al formulario
-        
+
+        # Validate and sanitize respondent email (PT7)
+        raw_email = request.POST.get('email', '').strip() or None
+        if raw_email:
+            try:
+                validate_email(raw_email)
+                respondent_email = raw_email
+            except ValidationError:
+                respondent_email = None
+        else:
+            respondent_email = None
+
         # Crear una nueva respuesta
         response = GResponse.objects.create(
             form=gform,
             respondent=request.user if request.user.is_authenticated else None,
-            respondent_email=request.POST.get('email', None)
+            respondent_email=respondent_email,
         )
-        
+
         # Procesar cada pregunta
         for question in questions:
             field_name = f'question_{question.id}'
             file_field_name = f'file_{question.id}'
             url_field_name = f'url_{question.id}'
-            
+
             if field_name in request.POST or file_field_name in request.FILES or url_field_name in request.POST:
                 answer = GAnswer.objects.create(
                     response=response,
                     question=question
                 )
-                
+
                 if field_name in request.POST:
                     if question.question_type in ['short_text', 'paragraph', 'date', 'time', 'linear_scale']:
                         answer.text_answer = request.POST.get(field_name)
                         answer.save()
-                    
+
                     elif question.question_type in ['multiple_choice', 'dropdown']:
                         option_id = request.POST.get(field_name)
                         if option_id:
                             option = get_object_or_404(GOption, id=option_id)
                             GSelectedOption.objects.create(answer=answer, option=option)
-                    
+
                     elif question.question_type == 'checkbox':
                         # Para checkbox, value puede ser una lista
                         option_ids = request.POST.getlist(field_name)
                         for option_id in option_ids:
                             option = get_object_or_404(GOption, id=option_id)
                             GSelectedOption.objects.create(answer=answer, option=option)
-                
+
                 # Procesar archivos adjuntos solo si la pregunta permite adjuntos
                 if question.allow_attachments:
                     if file_field_name in request.FILES:
@@ -1198,15 +1238,18 @@ def gform_respond(request, form_id):
                         elif file.content_type.startswith('video/'):
                             answer.video = file
                         answer.save()
-                    
-                    # Procesar URL
-                    if url_field_name in request.POST and request.POST.get(url_field_name):
-                        answer.file_url = request.POST.get(url_field_name)
-                        answer.save()
-        
+
+                    # Procesar URL — only accept http/https schemes (PT2)
+                    raw_url = request.POST.get(url_field_name, '').strip()
+                    if raw_url:
+                        parsed = urlparse(raw_url)
+                        if parsed.scheme in ('http', 'https'):
+                            answer.file_url = raw_url
+                            answer.save()
+
         messages.success(request, _t(request, "Thank you for your response!"))
         return redirect('gform_thank_you', form_id=gform.id)
-    
+
     return render(request, 'forms_google/respond_form.html', {
         'gform': gform,
         'questions': questions
@@ -1560,14 +1603,9 @@ def gform_save_question_to_bank(request, question_id):
             'message': message,
             'bank_question_id': str(bank_question.id)
         })
-    except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"Error al guardar pregunta en banco: {str(e)}\n{error_traceback}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+    except Exception:
+        logger.exception("gform_save_question_to_bank failed for question %s", question_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')})
 
 @login_required
 def gform_question_bank(request):
@@ -1607,22 +1645,15 @@ def gform_question_bank_json(request):
                 'is_required': question.is_required,
                 'allow_attachments': question.allow_attachments,
                 'created_at': question.created_at.isoformat() if question.created_at else None,
-                'hash': question.question_hash[:8] if question.question_hash else None  # Solo para depuración
             })
         
         return JsonResponse({
             'success': True,
             'bank_questions': questions_data
         })
-    except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"Error en gform_question_bank_json: {str(e)}\n{error_traceback}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e),
-            'traceback': error_traceback
-        }, status=500)
+    except Exception:
+        logger.exception("gform_question_bank_json failed")
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')}, status=500)
 
 @login_required
 def gform_question_bank_detail(request, question_id):
@@ -1702,11 +1733,9 @@ def gform_question_bank_edit(request, question_id):
             'success': True,
             'message': 'Question updated successfully'
         })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+    except Exception:
+        logger.exception("gform_question_bank_edit failed for question %s", question_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')})
 
 @login_required
 @require_POST
@@ -1733,11 +1762,9 @@ def gform_question_bank_delete(request, question_id):
             'success': True,
             'message': 'Question deleted from bank successfully'
         })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+    except Exception:
+        logger.exception("gform_question_bank_delete failed for question %s", question_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')})
 
 # Modificar la función gform_add_from_bank para usar el nuevo sistema de hash
 @login_required
@@ -1819,14 +1846,9 @@ def gform_add_from_bank(request, form_id, question_id):
             'message': 'Pregunta añadida correctamente al formulario',
             'question': question_data
         })
-    except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"Error en gform_add_from_bank: {str(e)}\n{error_traceback}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+    except Exception:
+        logger.exception("gform_add_from_bank failed for form %s question %s", form_id, question_id)
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')})
 
 # Añadir una nueva vista para obtener las preguntas en formato JSON
 @login_required
@@ -1922,15 +1944,9 @@ def gform_clean_question_bank(request):
             'duplicates_removed': delete_count,
             'questions_kept': kept_count
         })
-    except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"Error en gform_clean_question_bank: {str(e)}\n{error_traceback}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e),
-            'traceback': error_traceback
-        }, status=500)
+    except Exception:
+        logger.exception("gform_clean_question_bank failed")
+        return JsonResponse({'success': False, 'error': _t(request, 'An error occurred')}, status=500)
 
 # Nuevas vistas para gestionar permisos de formularios
 @login_required
