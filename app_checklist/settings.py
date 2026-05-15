@@ -36,7 +36,27 @@ if ENVIRONMENT == 'development':
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+# Dev: localhost only. Prod: read from env (Railway/Render set this automatically).
+if ENVIRONMENT == 'development':
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+else:
+    ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['chcklistapp-production.up.railway.app'])
+
+# ── Security settings ─────────────────────────────────────────────────────────
+# Applied in both environments (safe for HTTP dev server)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True  # Django default, made explicit
+
+# Applied only in production (require HTTPS)
+if ENVIRONMENT == 'production':
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # Application definition
@@ -57,6 +77,7 @@ INSTALLED_APPS = [
 # Middleware optimizado para rendimiento
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'checklist.middleware.SecurityHeadersMiddleware',  # Security headers on every response
     'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise debe estar justo después de SecurityMiddleware
     'django.middleware.gzip.GZipMiddleware',  # Compresión Gzip para respuestas
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -119,6 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 10},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -258,6 +280,12 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        # Captures CSRF failures, SuspiciousOperation, DisallowedHost, etc.
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
         },
     },
 }

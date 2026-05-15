@@ -142,6 +142,7 @@
  {% block styles %}{% endblock %}
  <!-- Extra head block for page-specific meta/links -->
  {% block extra_head %}{% endblock %}
+ <script>window.APP_DEBUG = {% if debug %}true{% else %}false{% endif %};</script>
 </head>
 <body class="d-flex flex-column min-vh-100">
  <!-- Debug info -->

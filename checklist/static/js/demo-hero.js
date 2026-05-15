@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Detectar si estamos en un dispositivo táctil de manera más confiable
   const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0
 
-  console.log("¿Es dispositivo táctil?", isTouchDevice)
+  window.APP_DEBUG && console.log("¿Es dispositivo táctil?", isTouchDevice)
 
   // Variables para el arrastre
   let draggedCard = null
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Iniciar un temporizador para detectar pulsación larga
     clearTimeout(longPressTimer) // Limpiar cualquier temporizador existente
     longPressTimer = setTimeout(() => {
-      console.log("Iniciando arrastre táctil")
+      window.APP_DEBUG && console.log("Iniciando arrastre táctil")
       startDrag(this, touch.clientX, touch.clientY)
     }, 500) // 500ms para pulsación larga
 

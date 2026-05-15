@@ -1,9 +1,12 @@
 from django.utils.deprecation import MiddlewareMixin
+from django.conf import settings as django_settings
 import logging
 from django.core.cache import cache
 from django.utils import translation
 from django.shortcuts import redirect
 from django.urls import reverse
+
+_ALLOWED_LANGUAGES = {'es', 'en'}
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -66,8 +69,10 @@ class CachedLanguageMiddleware(MiddlewareMixin):
         
         # Verificar si hay un cambio explícito de idioma
         if 'set_language' in request.GET or 'language' in request.POST:
-            # Procesar el cambio de idioma
+            # Procesar el cambio de idioma — validate against allowed values
             language = request.POST.get('language', request.GET.get('set_language', 'es'))
+            if language not in _ALLOWED_LANGUAGES:
+                language = 'es'
             request.session['language'] = language
             # Guardar en caché
             cache.set(cache_key, language, 60 * 60 * 24)  # 24 horas
@@ -100,4 +105,37 @@ class CachedLanguageMiddleware(MiddlewareMixin):
         """
         if hasattr(response, 'context_data') and response.context_data is not None:
             response.context_data['LANGUAGE_CODE'] = request.LANGUAGE_CODE
+        return response
+
+
+class SecurityHeadersMiddleware:
+    """
+    Adds HTTP security headers to every response.
+    CSP allows 'unsafe-inline' because crispy-forms and Bootstrap emit inline styles/scripts.
+    Tighten CSP further once inline usage is eliminated.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # In production Supabase CDN serves avatars, so we allow https: for img-src.
+        if django_settings.ENVIRONMENT == 'production':
+            img_src = "'self' data: https:"
+        else:
+            img_src = "'self' data:"
+
+        self._csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            f"img-src {img_src}; "
+            "font-src 'self'; "
+            "connect-src 'self';"
+        )
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response['Permissions-Policy'] = 'geolocation=(), camera=(), microphone=()'
+        response['Content-Security-Policy'] = self._csp
         return response

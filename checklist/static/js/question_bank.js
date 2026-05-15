@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Modificar la función initBankQuestionButtons para asegurar que los event listeners se añadan correctamente
   function initBankQuestionButtons() {
-    console.log("Inicializando botones del banco de preguntas...")
+    window.APP_DEBUG && console.log("Inicializando botones del banco de preguntas...")
 
     // Botones para eliminar preguntas del banco
     document.querySelectorAll(".delete-bank-question-btn").forEach((btn) => {
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
       newBtn.addEventListener("click", function (e) {
         e.preventDefault()
         e.stopPropagation()
-        console.log("Botón eliminar clickeado para ID:", this.dataset.id)
+        window.APP_DEBUG && console.log("Botón eliminar clickeado para ID:", this.dataset.id)
 
         const questionId = this.dataset.id
 
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
       newBtn.addEventListener("click", function (e) {
         e.preventDefault()
         e.stopPropagation()
-        console.log("Botón añadir clickeado para ID:", this.dataset.id)
+        window.APP_DEBUG && console.log("Botón añadir clickeado para ID:", this.dataset.id)
 
         const questionId = this.dataset.id
         // Obtener el ID del formulario de la URL
@@ -170,14 +170,14 @@ document.addEventListener("DOMContentLoaded", () => {
       newBtn.addEventListener("click", function (e) {
         e.preventDefault()
         e.stopPropagation()
-        console.log("Botón editar clickeado para ID:", this.dataset.id)
+        window.APP_DEBUG && console.log("Botón editar clickeado para ID:", this.dataset.id)
 
         const questionId = this.dataset.id
         editBankQuestion(questionId)
       })
     })
 
-    console.log("Botones del banco de preguntas inicializados correctamente")
+    window.APP_DEBUG && console.log("Botones del banco de preguntas inicializados correctamente")
   }
 
   // Función para inicializar Sortable (drag and drop)
@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Función para añadir una pregunta desde el banco
   function addQuestionFromBank(formId, questionId) {
-    console.log(`Añadiendo pregunta ${questionId} al formulario ${formId}`)
+    window.APP_DEBUG && console.log(`Añadiendo pregunta ${questionId} al formulario ${formId}`)
 
     // Crear un token CSRF
     const csrftoken = getCookie("csrftoken")
@@ -285,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Función para editar una pregunta del banco
   function editBankQuestion(questionId) {
-    console.log("Editando pregunta del banco con ID:", questionId)
+    window.APP_DEBUG && console.log("Editando pregunta del banco con ID:", questionId)
 
     // Obtener los datos de la pregunta
     fetch(`/forms/question-bank/${questionId}/`, {
@@ -428,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Función para eliminar una pregunta del banco
   function deleteBankQuestion(questionId) {
-    console.log("Ejecutando deleteBankQuestion para ID:", questionId)
+    window.APP_DEBUG && console.log("Ejecutando deleteBankQuestion para ID:", questionId)
 
     // Crear un token CSRF
     const csrftoken = getCookie("csrftoken")
@@ -721,7 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Verificar si esta pregunta ya ha sido añadida por ID o contenido
             if (addedIds.has(question.id) || addedContent.has(contentKey)) {
-              console.log(`Pregunta duplicada detectada en el frontend: ${question.id} - ${contentKey}`)
+              window.APP_DEBUG && console.log(`Pregunta duplicada detectada en el frontend: ${question.id} - ${contentKey}`)
               return // Saltar esta pregunta
             }
 
@@ -769,7 +769,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initSortable()
           }
 
-          console.log(`Banco de preguntas actualizado: ${addedIds.size} preguntas únicas cargadas`)
+          window.APP_DEBUG && console.log(`Banco de preguntas actualizado: ${addedIds.size} preguntas únicas cargadas`)
 
           // Ejecutar limpieza de duplicados en el DOM después de cargar
           setTimeout(removeDuplicatesFromDOM, 100)
@@ -821,13 +821,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ids.has(id)) {
         // Este es un duplicado por ID
         duplicates.push(item)
-        console.log(`Duplicado por ID: ${id}`)
+        window.APP_DEBUG && console.log(`Duplicado por ID: ${id}`)
       }
       // Verificar duplicados por contenido
       else if (text && textMap.has(contentKey)) {
         // Este es un duplicado por contenido
         duplicates.push(item)
-        console.log(`Duplicado por contenido: ${contentKey}`)
+        window.APP_DEBUG && console.log(`Duplicado por contenido: ${contentKey}`)
       } else {
         // Este es el primer elemento con este ID y contenido
         ids.set(id, item)
@@ -843,7 +843,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     if (duplicates.length > 0) {
-      console.log(`Eliminados ${duplicates.length} elementos duplicados del DOM`)
+      window.APP_DEBUG && console.log(`Eliminados ${duplicates.length} elementos duplicados del DOM`)
     }
 
     return duplicates.length
@@ -870,7 +870,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           if (data.duplicates_removed > 0) {
-            console.log(
+            window.APP_DEBUG && console.log(
               `Limpieza en servidor: ${data.duplicates_removed} eliminados, ${data.questions_kept} mantenidos`,
             )
             // Actualizar el banco de preguntas solo si se eliminaron duplicados
@@ -1068,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     if (duplicatesFound.length > 0) {
-      console.log(`Se encontraron ${duplicatesFound.length} duplicados en el DOM`)
+      window.APP_DEBUG && console.log(`Se encontraron ${duplicatesFound.length} duplicados en el DOM`)
       // Limpiar duplicados automáticamente
       removeDuplicatesFromDOM()
     }
@@ -1090,7 +1090,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Solo actualizar si el banco está visible
       const questionBank = document.getElementById("questionBank")
       if (questionBank && questionBank.offsetParent !== null) {
-        console.log("Actualizando banco de preguntas automáticamente...")
+        window.APP_DEBUG && console.log("Actualizando banco de preguntas automáticamente...")
         updateQuestionBank()
 
         // Limpiar duplicados en el servidor cada 30 segundos
@@ -1234,7 +1234,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Asegurarse de que la función se ejecute cuando el DOM esté completamente cargado
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM cargado, inicializando botones del banco...")
+  window.APP_DEBUG && console.log("DOM cargado, inicializando botones del banco...")
   initBankQuestionButtons()
 
   // También inicializar después de actualizar el banco de preguntas

@@ -71,25 +71,41 @@ document.addEventListener("DOMContentLoaded", () => {
   
       urlInput.addEventListener("change", function () {
         if (this.value) {
-          const url = this.value.toLowerCase()
+          const rawUrl = this.value
+          const url = rawUrl.toLowerCase()
           previewContainer.classList.remove("d-none")
-  
+          previewContent.replaceChildren()  // clear previous preview safely
+
           if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png") || url.endsWith(".gif")) {
-            previewContent.innerHTML = `<img src="${this.value}" class="img-fluid" alt="Vista previa">`
+            const img = document.createElement("img")
+            img.src = rawUrl          // browser sanitizes attribute assignment
+            img.className = "img-fluid"
+            img.alt = "Vista previa"
+            previewContent.appendChild(img)
           } else if (url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg")) {
-            previewContent.innerHTML = `
-              <video controls class="img-fluid">
-                <source src="${this.value}" type="video/mp4">
-                Tu navegador no soporta la reproducción de videos.
-              </video>
-            `
+            const video = document.createElement("video")
+            video.controls = true
+            video.className = "img-fluid"
+            const source = document.createElement("source")
+            source.src = rawUrl
+            source.type = "video/mp4"
+            video.appendChild(source)
+            previewContent.appendChild(video)
           } else {
-            previewContent.innerHTML = `
-              <div class="p-3">
-                <p class="mb-2">URL proporcionada:</p>
-                <a href="${this.value}" target="_blank" class="d-block text-truncate">${this.value}</a>
-              </div>
-            `
+            const wrapper = document.createElement("div")
+            wrapper.className = "p-3"
+            const label = document.createElement("p")
+            label.className = "mb-2"
+            label.textContent = "URL proporcionada:"
+            const link = document.createElement("a")
+            link.href = rawUrl
+            link.target = "_blank"
+            link.rel = "noopener noreferrer"
+            link.className = "d-block text-truncate"
+            link.textContent = rawUrl   // textContent escapes — no XSS
+            wrapper.appendChild(label)
+            wrapper.appendChild(link)
+            previewContent.appendChild(wrapper)
           }
         }
       })

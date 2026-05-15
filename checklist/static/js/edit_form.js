@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        console.log('Orden de preguntas actualizado');
+        window.APP_DEBUG && console.log('Orden de preguntas actualizado');
       } else {
         console.error('Error al actualizar el orden de preguntas:', data.error);
       }
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        console.log('Orden de opciones actualizado');
+        window.APP_DEBUG && console.log('Orden de opciones actualizado');
       } else {
         console.error('Error al actualizar el orden de opciones:', data.error);
       }

@@ -5,11 +5,13 @@ from django.views.decorators.http import require_POST
 from django.db import transaction, models
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta, date
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django_ratelimit.decorators import ratelimit
 import json
 import hashlib
 import os
@@ -144,6 +146,7 @@ def _send_verification_email(request, user, ev):
         logging.getLogger(__name__).error('Error sending verification email to %s: %s', user.email, exc)
 
 
+@ratelimit(key='ip', rate='5/h', method='POST', block=True)
 def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -182,6 +185,7 @@ def verify_email(request, token):
 
 
 @login_required
+@ratelimit(key='user', rate='3/10m', method='POST', block=True)
 def verify_email_resend(request):
     """Invalidate old tokens and send a fresh verification email."""
     if request.method == 'POST':
@@ -193,18 +197,19 @@ def verify_email_resend(request):
         messages.success(request, _t(request, 'Verification email sent'))
     return redirect('verify_email_sent')
 
+@ratelimit(key='ip', rate='10/5m', method='POST', block=True)
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
-            # Redirigir a la URL guardada en la sesión si existe
-            next_url = request.session.get('next', 'dashboard')
-            if 'next' in request.session:
-                del request.session['next']
-            return redirect(next_url)
+            next_url = request.session.pop('next', None)
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
+                return redirect(next_url)
+            return redirect('dashboard')
     else:
-        # Guardar la URL de redirección si viene en la solicitud
         if 'next' in request.GET:
             request.session['next'] = request.GET.get('next')
         form = AuthenticationForm()
@@ -1931,49 +1936,54 @@ def gform_clean_question_bank(request):
 @login_required
 @require_POST
 def gform_add_permission(request, form_id):
-    """Vista para añadir un permiso a un usuario para un formulario"""
+    """Vista para añadir o actualizar un permiso en un formulario"""
     gform = get_object_or_404(GForm, id=form_id)
-    
-    # Verificar que el usuario sea el propietario
+
     if gform.user != request.user:
         return HttpResponseForbidden(_t(request, "Only the owner can manage permissions"))
-    
+
+    # Update path: existing permission identified by ID (no email in DOM)
+    permission_id = request.POST.get('permission_id')
+    if permission_id:
+        permission = get_object_or_404(FormPermission, id=permission_id, form=gform)
+        permission_type = request.POST.get('permission_type', '')
+        valid_types = {c[0] for c in FormPermission.PERMISSION_CHOICES}
+        if permission_type not in valid_types:
+            messages.error(request, _t(request, 'Invalid permission type'))
+            return redirect('gform_share_form', form_id=gform.id)
+        permission.permission_type = permission_type
+        permission.save(update_fields=['permission_type'])
+        messages.success(request, f"{_t(request, 'Permission updated for')} {permission.user.username}")
+        return redirect('gform_share_form', form_id=gform.id)
+
+    # Create path: new permission by email
     form = FormPermissionForm(request.POST)
     if form.is_valid():
-        # Obtener el usuario por correo electrónico
         email = form.cleaned_data['user_email']
         try:
             user = User.objects.get(email=email)
-            
-            # Verificar que no se esté intentando dar permisos al propietario
+
             if user == gform.user:
                 messages.error(request, _t(request, "You cannot add permissions to the form owner"))
                 return redirect('gform_share_form', form_id=gform.id)
-            
-            # Verificar que el permiso sea de editor solo si el usuario tiene cuenta
+
             permission_type = form.cleaned_data['permission_type']
-            if permission_type == 'editor' and not user.is_authenticated:
-                messages.error(request, _t(request, "Only registered users can have editor permissions"))
-                return redirect('gform_share_form', form_id=gform.id)
-            
-            # Crear o actualizar el permiso
-            permission, created = FormPermission.objects.update_or_create(
+            _, created = FormPermission.objects.update_or_create(
                 form=gform,
                 user=user,
                 defaults={'permission_type': permission_type}
             )
-            
+
             if created:
                 messages.success(request, f"{_t(request, 'Permission added for')} {user.username}")
             else:
                 messages.success(request, f"{_t(request, 'Permission updated for')} {user.username}")
-            
+
         except User.DoesNotExist:
             messages.error(request, f"{_t(request, 'No user found with email')} {email}")
-        
+
         return redirect('gform_share_form', form_id=gform.id)
-    
-    # Si hay errores en el formulario
+
     for field, errors in form.errors.items():
         for error in errors:
             messages.error(request, f"{_t(request, 'Error in')} {field}: {error}")
