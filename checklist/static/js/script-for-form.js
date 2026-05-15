@@ -54,7 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </video>
               `
             } else {
-              previewContent.innerHTML = `<p class="p-3">Archivo seleccionado: ${file.name}</p>`
+              const p = document.createElement("p")
+              p.className = "p-3"
+              p.textContent = `Archivo seleccionado: ${file.name}`
+              previewContent.replaceChildren(p)
             }
           }
   

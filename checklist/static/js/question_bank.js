@@ -2,6 +2,13 @@
 let bootstrap
 let Sortable
 
+// Escape HTML to prevent XSS when injecting user-controlled strings via innerHTML
+function esc(s) {
+  const d = document.createElement("div")
+  d.textContent = String(s ?? "")
+  return d.innerHTML
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Asignar las variables globales si están disponibles
   bootstrap = window.bootstrap || {}
@@ -734,25 +741,24 @@ document.addEventListener("DOMContentLoaded", () => {
             questionItem.dataset.id = question.id
             questionItem.dataset.type = question.question_type
             questionItem.dataset.text = question.text.toLowerCase().replace(/\s+/g, "-") // Para comparación de duplicados
-            questionItem.dataset.hash = question.hash || "" // Para comparación de duplicados
             questionItem.draggable = true
 
             questionItem.innerHTML = `
-              <span class="bank-question-type">${question.question_type_display}</span>
-              <div class="bank-question-text">${question.text}</div>
+              <span class="bank-question-type">${esc(question.question_type_display)}</span>
+              <div class="bank-question-text">${esc(question.text)}</div>
               <div class="bank-question-meta">
                 <div class="bank-question-usage">
-                  <i class="bi bi-bar-chart"></i> Usado ${question.usage_count} veces
+                  <i class="bi bi-bar-chart"></i> Usado ${esc(question.usage_count)} veces
                 </div>
               </div>
               <div class="bank-question-actions">
-                <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="${question.id}" title="Añadir al formulario">
+                <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="${esc(question.id)}" title="Añadir al formulario">
                   <i class="bi bi-plus"></i>
                 </button>
-                <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="${question.id}" title="Editar pregunta">
+                <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="${esc(question.id)}" title="Editar pregunta">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="${question.id}" title="Eliminar pregunta">
+                <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="${esc(question.id)}" title="Eliminar pregunta">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -792,7 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
         questionBankContainer.innerHTML = `
           <div class="alert alert-danger">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            Error al cargar las preguntas del banco: ${error.message}
+            Error al cargar las preguntas del banco: ${esc(error.message)}
             <div class="mt-2">
               <button type="button" class="btn btn-sm btn-outline-danger" onclick="updateQuestionBank()">
                 <i class="bi bi-arrow-clockwise me-1"></i> Reintentar
@@ -902,39 +908,31 @@ document.addEventListener("DOMContentLoaded", () => {
     questionCard.dataset.id = question.id
 
     // Construir el HTML de la pregunta
+    const qid = esc(question.id)
     questionCard.innerHTML = `
       <div class="card-header d-flex justify-content-between align-items-center">
           <div>
-              <span class="badge bg-info">${question.question_type_display}</span>
+              <span class="badge bg-info">${esc(question.question_type_display)}</span>
               ${question.is_required ? '<span class="badge bg-danger ms-1">Obligatorio</span>' : ""}
               ${question.allow_attachments ? '<span class="badge bg-info ms-1 attachment-allowed">Permite adjuntos</span>' : ""}
               ${question.in_question_bank ? '<span class="badge bg-success ms-1">En banco</span>' : ""}
           </div>
           <div class="btn-group">
-              <button type="button" class="btn btn-sm btn-outline-success save-to-bank-btn custom-tooltip" data-id="${question.id}" data-tooltip="Guardar en banco" ${question.in_question_bank ? "disabled" : ""}>
+              <button type="button" class="btn btn-sm btn-outline-success save-to-bank-btn custom-tooltip" data-id="${qid}" data-tooltip="Guardar en banco" ${question.in_question_bank ? "disabled" : ""}>
                   <i class="bi bi-archive"></i>
               </button>
-              <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn custom-tooltip" data-id="${question.id}" data-tooltip="Editar pregunta">
+              <button type="button" class="btn btn-sm btn-outline-primary edit-question-btn custom-tooltip" data-id="${qid}" data-tooltip="Editar pregunta">
                   <i class="bi bi-pencil"></i>
               </button>
-              <button type="button" class="btn btn-sm btn-outline-danger delete-question-btn custom-tooltip" data-id="${question.id}" data-tooltip="Eliminar pregunta">
+              <button type="button" class="btn btn-sm btn-outline-danger delete-question-btn custom-tooltip" data-id="${qid}" data-tooltip="Eliminar pregunta">
                   <i class="bi bi-trash"></i>
               </button>
           </div>
       </div>
       <div class="card-body">
-          <h5 class="card-title">${question.text}</h5>
-          ${question.help_text ? `<p class="text-muted small">${question.help_text}</p>` : ""}
-          
-          ${
-            question.image
-              ? `
-          <div class="mt-2 mb-3">
-              <img src="${question.image}" alt="Imagen de la pregunta" class="img-fluid rounded" style="max-height: 200px;">
-          </div>
-          `
-              : ""
-          }
+          <h5 class="card-title">${esc(question.text)}</h5>
+          ${question.help_text ? `<p class="text-muted small">${esc(question.help_text)}</p>` : ""}
+          ${question.image ? `<div class="mt-2 mb-3"><img src="${esc(question.image)}" alt="Imagen de la pregunta" class="img-fluid rounded" style="max-height: 200px;"></div>` : ""}
       </div>
     `
 

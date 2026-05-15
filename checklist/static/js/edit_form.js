@@ -1,3 +1,10 @@
+// Escape HTML to prevent XSS when injecting user-controlled strings via innerHTML
+function esc(s) {
+  const d = document.createElement("div")
+  d.textContent = String(s ?? "")
+  return d.innerHTML
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Mostrar/ocultar campos específicos según el tipo de pregunta
   const questionType = document.getElementById('id_question_type');
@@ -630,22 +637,23 @@ document.addEventListener('DOMContentLoaded', function() {
           questionItem.dataset.type = question.question_type;
           questionItem.draggable = true;
           
+          const qid = esc(question.id);
           questionItem.innerHTML = `
-            <span class="bank-question-type">${question.question_type_display}</span>
-            <div class="bank-question-text">${question.text}</div>
+            <span class="bank-question-type">${esc(question.question_type_display)}</span>
+            <div class="bank-question-text">${esc(question.text)}</div>
             <div class="bank-question-meta">
               <div class="bank-question-usage">
-                <i class="bi bi-bar-chart"></i> Usado ${question.usage_count} veces
+                <i class="bi bi-bar-chart"></i> Usado ${esc(question.usage_count)} veces
               </div>
             </div>
             <div class="bank-question-actions">
-              <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="${question.id}" title="Añadir al formulario">
+              <button type="button" class="bank-action-btn add-btn add-bank-question-btn" data-id="${qid}" title="Añadir al formulario">
                 <i class="bi bi-plus"></i>
               </button>
-              <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="${question.id}" title="Editar pregunta">
+              <button type="button" class="bank-action-btn edit-btn edit-bank-question-btn" data-id="${qid}" title="Editar pregunta">
                 <i class="bi bi-pencil"></i>
               </button>
-              <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="${question.id}" title="Eliminar pregunta">
+              <button type="button" class="bank-action-btn delete-btn delete-bank-question-btn" data-id="${qid}" title="Eliminar pregunta">
                 <i class="bi bi-trash"></i>
               </button>
             </div>

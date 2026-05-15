@@ -1522,7 +1522,9 @@ def export_response_to_excel(request, response_id):
     http_response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    http_response['Content-Disposition'] = f'attachment; filename=respuesta_{response_obj.id}_{gform.title.replace(" ", "_")}.xlsx'
+    from urllib.parse import quote as _url_quote
+    safe_title = _url_quote(gform.title, safe='')
+    http_response['Content-Disposition'] = f'attachment; filename="respuesta_{response_obj.id}_{safe_title}.xlsx"'
     
     # Guardar el libro de Excel en la respuesta HTTP
     wb.save(http_response)
