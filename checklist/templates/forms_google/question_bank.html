@@ -787,7 +787,7 @@
     <div id="questionBank" class="question-list">
       {% if bank_questions %}
         {% for question in bank_questions %}
-          <div class="question-item" data-id="{{ question.id }}" data-type="{{ question.question_type }}" data-text="{{ question.text|slugify }}" data-hash="{{ question.hash|default:'' }}">
+          <div class="question-item" data-id="{{ question.id }}" data-type="{{ question.question_type }}" data-text="{{ question.text|slugify }}">
             <div class="question-header">
               <div class="question-type">{{ question.get_question_type_display }}</div>
               <div class="question-date">{{ question.created_at|date:"d/m/Y" }}</div>

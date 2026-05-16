@@ -324,7 +324,7 @@
       {% if bank_questions %}
         <div id="questionBank" class="bank-questions-list">
           {% for question in bank_questions %}
-            <div class="bank-question-item" data-id="{{ question.id }}" data-type="{{ question.question_type }}" data-text="{{ question.text|slugify }}" data-hash="{{ question.hash|default:'' }}">
+            <div class="bank-question-item" data-id="{{ question.id }}" data-type="{{ question.question_type }}" data-text="{{ question.text|slugify }}">
               <span class="bank-question-type">{{ question.get_question_type_display }}</span>
               <div class="bank-question-text">{{ question.text }}</div>
               <div class="bank-question-meta">

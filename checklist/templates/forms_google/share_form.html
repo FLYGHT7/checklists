@@ -74,7 +74,7 @@
               <div class="fs-user-permission">
                 <form method="post" action="{% url 'gform_add_permission' form_id=form.id %}" class="d-inline">
                   {% csrf_token %}
-                  <input type="hidden" name="user_email" value="{{ permission.user.email }}">
+                  <input type="hidden" name="permission_id" value="{{ permission.id }}">
                   <select name="permission_type" class="fs-permission-select" onchange="this.form.submit()">
                     <option value="viewer" {% if permission.permission_type == 'viewer' %}selected{% endif %}>{% trans_tag "Viewer" %}</option>
                     <option value="responder" {% if permission.permission_type == 'responder' %}selected{% endif %}>{% trans_tag "Responder" %}</option>

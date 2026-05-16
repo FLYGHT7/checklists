@@ -50,6 +50,7 @@ build/
 .cursor/
 skills-lock.json
 .augment/
+CLAUDE.md
 
 # Archivos de despliegue
 *.bak

@@ -4,9 +4,38 @@ from django.utils.timezone import now
 from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+import os
 import uuid
 import hashlib
 from datetime import datetime, timedelta
+
+_ALLOWED_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+_ALLOWED_VIDEO_EXTENSIONS = {'.mp4', '.webm', '.ogg', '.mov'}
+_MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024    # 5 MB
+_MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024   # 50 MB
+
+
+def validate_image_extension(file):
+    ext = os.path.splitext(file.name)[1].lower()
+    if ext not in _ALLOWED_IMAGE_EXTENSIONS:
+        raise ValidationError(f"Only {', '.join(_ALLOWED_IMAGE_EXTENSIONS)} images are allowed.")
+
+
+def validate_image_size(file):
+    if file.size > _MAX_IMAGE_SIZE_BYTES:
+        raise ValidationError("Image must be under 5 MB.")
+
+
+def validate_video_extension(file):
+    ext = os.path.splitext(file.name)[1].lower()
+    if ext not in _ALLOWED_VIDEO_EXTENSIONS:
+        raise ValidationError(f"Only {', '.join(_ALLOWED_VIDEO_EXTENSIONS)} videos are allowed.")
+
+
+def validate_video_size(file):
+    if file.size > _MAX_VIDEO_SIZE_BYTES:
+        raise ValidationError("Video must be under 50 MB.")
 
 # Models todo_list
 class TodoList(models.Model):
@@ -76,7 +105,7 @@ class BankQuestion(models.Model):
   max_label = models.CharField(max_length=50, blank=True, null=True)
   
   # Imagen para la pregunta (opcional)
-  image = models.ImageField(upload_to='bank_question_images/', blank=True, null=True)
+  image = models.ImageField(upload_to='bank_question_images/', blank=True, null=True, validators=[validate_image_extension, validate_image_size])
   
   # Campo para controlar si se permiten adjuntos
   allow_attachments = models.BooleanField(default=False, help_text="Allow users to attach files or URLs to this question")
@@ -277,7 +306,7 @@ class GQuestion(models.Model):
   max_label = models.CharField(max_length=50, blank=True, null=True)
   
   # Imagen para la pregunta (opcional)
-  image = models.ImageField(upload_to='gform_question_images/', blank=True, null=True)
+  image = models.ImageField(upload_to='gform_question_images/', blank=True, null=True, validators=[validate_image_extension, validate_image_size])
   
   # Campo para controlar si se permiten adjuntos
   allow_attachments = models.BooleanField(default=False, help_text="Allow users to attach files or URLs to this question")
@@ -328,8 +357,8 @@ class GAnswer(models.Model):
   text_answer = models.TextField(blank=True, null=True)
   
   # Campos para archivos adjuntos en respuestas
-  image = models.ImageField(upload_to='gform_answer_images/', blank=True, null=True)
-  video = models.FileField(upload_to='gform_answer_videos/', blank=True, null=True)
+  image = models.ImageField(upload_to='gform_answer_images/', blank=True, null=True, validators=[validate_image_extension, validate_image_size])
+  video = models.FileField(upload_to='gform_answer_videos/', blank=True, null=True, validators=[validate_video_extension, validate_video_size])
   file_url = models.URLField(blank=True, null=True)
   
   def __str__(self):
